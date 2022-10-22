@@ -1,28 +1,61 @@
-const base_url: string = "https://stregsystem.fklub.dk/";
+import {promise_cond} from "./util/async";
+
+let base_api_url: string = "https://stregsystem.fklub.dk/api";
+
+export const override_api_url = (url: string) => base_api_url = url;
 
 export interface UserProfile {
     username: string,
-    name: string,
-    email: string,
     id: number,
+    active: boolean,
+    name: string,
     balance: number,
 }
 
-/**
- * Check whether stregsystem is available from the current network.
+/*
+    API Calls
  */
-export async function check_access(): Promise<boolean> {
-    return (await fetch(base_url)).status == 443;
+
+/**
+ * Gets the id that corresponds to a given username.
+ * @param username
+ */
+const get_user_id = (username: string): Promise<number> =>
+    fetch(`${base_api_url}/member/get_id?username=${username}`)
+        .then(res => promise_cond(res.status === 200, res, "Invalid status code"))
+        .then(res => res.json())
+        .then(value => value['member_id']);
+
+/**
+ * Gets the user information associated with the given user id.
+ * @param user_id
+ */
+const get_user_info = (user_id: number): Promise<any> =>
+    fetch(`${base_api_url}/member?member_id=${user_id}`)
+        .then(res => promise_cond(res.status === 200, res, res.text()))
+        .then(res => res.json());
+
+/**
+ * Check whether the stregsystem can be reached.
+ */
+export const check_access = async (): Promise<boolean> => (await fetch(base_api_url)).status === 200;
+
+/**
+ * Fetches a user profile by username.
+ * @param username
+ */
+export const fetch_profile = async (username: string): Promise<UserProfile> => {
+    let user_id = await get_user_id(username);
+    let { name, active, balance } = await get_user_info(user_id);
+
+    return {
+        username, id: user_id,
+        name, active, balance,
+    };
 }
 
-export async function fetch_profile(username: string): Promise<UserProfile?> {
-    let user_id = await fetch(`${base_url}api/member/get_id?username=${username}`);
+export const purchase = async (profile: UserProfile, product_id: number) => null;
 
-    return { username: "", id: 0 };
-}
+export const save_profile = async (profile: UserProfile) => null;
 
-export async function purchase(profile: UserProfile, item_id: number) {
-
-}
-
-export async function save_profile(profile: UserProfile) {}
+export const load_profile = async (): Promise<UserProfile> => null;
