@@ -1,4 +1,5 @@
 
-(async () => {
+
+(async() => {
     console.log("test");
 })()

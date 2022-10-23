@@ -1,0 +1,15 @@
+.topnav{
+    overflow: hidden;
+    position: relative;
+    background-color: crimson;
+}
+.topnav #navLinks {
+    display: none;
+}
+.topnav a{
+    color: white;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+    display: block;
+}
