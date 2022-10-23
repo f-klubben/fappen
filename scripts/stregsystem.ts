@@ -1,7 +1,13 @@
+import fs from "fs";
+import * as pug from "pug"
+
 import {promise_cond} from "./util/async";
+import {FaModule} from "./module"
 import config from "../config"
 
 const {base_api_url} = config;
+const product_template = fs.readFileSync(__dirname + '/../components/streg_product.pug', 'utf8');
+const product_builder = pug.compile(product_template);
 
 export interface UserProfile {
     username: string,
@@ -31,8 +37,12 @@ interface SaleResponse {
         is_coffee_master: boolean,
         cost: number,
         give_multibuy_hint: boolean,
-        sale_hints: boolean
+        sale_hints: boolean,
     }
+}
+
+interface ActiveProductList {
+    [product_id: string]: [string, number]
 }
 
 /*
@@ -69,6 +79,15 @@ const get_user_balance = (user_id: number): Promise<number> =>
         .then(value => value['balance']);
 
 /**
+ * Get a list of products that are active within a given room.
+ * @param room_id
+ */
+const get_active_products = (room_id: number): Promise<ActiveProductList> =>
+    fetch(`${base_api_url}/products/active_products?room_id=${room_id}`)
+        .then(res => promise_cond(res.status === 200, res, res.text()))
+        .then(res => res.json())
+
+/**
  * Performs a sale request.
  * @param buystring A string describing the products that are to be purchased.
  * @param room
@@ -95,7 +114,7 @@ const post_sale = (buystring: string, room: number, user_id: number): Promise<Sa
 /**
  * Check whether the stregsystem can be reached.
  */
-export const check_access = async (): Promise<boolean> => (await fetch(base_api_url)).status === 200;
+export const check_access = async (): Promise<boolean> => (await fetch(`${base_api_url}`)).status < 500;
 
 /**
  * Fetches a user profile by username.
@@ -111,8 +130,30 @@ export const fetch_profile = async (username: string): Promise<UserProfile> => {
     };
 }
 
-export const purchase = async (profile: UserProfile, product_id: number) => null;
+export class FaStregProduct extends HTMLDivElement {
+    product_id: number;
+    price: number;
+    name: string;
 
-export const save_profile = async (profile: UserProfile) => null;
+    constructor(product_id: number, price: number, name: string) {
+        super();
 
-export const load_profile = async (): Promise<UserProfile> => null;
+        this.product_id = product_id;
+        this.price = price;
+        this.name = name;
+
+        // Maybe use shadow root instead?
+        this.innerHTML = product_builder({ price, name });
+    }
+}
+
+export const init = async () => {
+    customElements.define("fa-stregproduct", FaStregProduct);
+
+    FaModule.register_module("stregsystem", async module => {
+        console.log("initiating stregsystem module")
+        if (await check_access() == false) {
+            console.log("unable to connect to stregsystem");
+        }
+    });
+}
