@@ -2,7 +2,7 @@ include components/core
 
 doctype html
 html(lang="en")
-    +head(`Front page - ${app_name}`)
+    +head(`Front page - ${manifest.short_name}`)
     body
-        p test abaslkjdsaldkjf
+        p Hello this is #{manifest.name}
         +scripts
