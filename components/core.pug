@@ -9,10 +9,14 @@ mixin scripts
     script(type="module" src="scripts/index.ts" defer async)
     block
 mixin navbar
-    script(type="stylesheet" src="css/navbar.css")
+    style
+        include /css/navbar.css
+    script(src="/scripts/navbar.ts")
     div(class='topnav')
+        a(href="javascript:void(0)" class="icon" onclick="toggleNavbar()")
+            img(src="/media/flogo.svg" style='width:100px;height:100px;')
         div(id='navLinks')
             -let links = ['index.pug'];
-                each link in links
-                    a(href='/' + link)= link
-        a(href="javascript:void(0)" class="borger" onclick="")
+            each link in links
+                a(href='/' + link)= link
+
