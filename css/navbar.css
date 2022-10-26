@@ -25,3 +25,7 @@
     background-color: #ddd;
     color: black;
 }
+.navIndicator{
+    height: 5px;
+    width: 100%;
+}
