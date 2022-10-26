@@ -1,11 +1,24 @@
 {
   "name": "f-appen",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "source": "pages/index.pug",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "parcel",
+    "build": "parcel build",
+    "cors-proxy": "node cors-proxy.js"
   },
-  "author": "",
-  "license": "ISC"
+  "devDependencies": {
+    "@parcel/transformer-pug": "^2.7.0",
+    "@types/node": "^18.11.3",
+    "@types/pug": "^2.0.6",
+    "assert": "^2.0.0",
+    "buffer": "^6.0.3",
+    "cors-anywhere": "^0.4.4",
+    "os-browserify": "^0.3.0",
+    "parcel": "^2.7.0",
+    "path-browserify": "^1.0.1",
+    "process": "^0.11.10"
+  },
+  "dependencies": {
+    "pug": "^3.0.2"
+  }
 }
