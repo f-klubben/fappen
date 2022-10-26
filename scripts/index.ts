@@ -10,6 +10,6 @@ import {registerNavEvents} from "./navbar";
     }
 
     await init_stregsystem();
-    await registerNavEvents();
+    registerNavEvents();
     customElements.define("fa-module", FaModule);
 })()
