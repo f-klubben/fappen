@@ -1,5 +1,8 @@
 {
   "locals": {
-      "app_name": "F-Appen"
+    "app_name": "F-Appen",
+    "navigation": {
+      "Frontpage": "./index.pug"
+    }
   }
 }

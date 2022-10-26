@@ -1,3 +1,5 @@
+include nav
+
 mixin head(page_title)
     head
         title #{page_title}
@@ -6,7 +8,7 @@ mixin head(page_title)
         block
 
 mixin scripts
-    script(type="module" src="scripts/index.ts" defer async)
+    script(type="module" src="../scripts/index.ts" defer async)
     block
 mixin navbar
     link(rel="stylesheet" href="./css/navbar.css")
@@ -19,4 +21,5 @@ mixin navbar
             -let links = ['index.pug'];
             each link in links
                 a(href='/' + link)= link
+
 
