@@ -1,0 +1,7 @@
+@import "./base.scss";
+
+fa-stregsystem {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* obviously TODO this needs to removed once proper core layout is established */
+}

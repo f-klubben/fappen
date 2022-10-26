@@ -1,6 +1,5 @@
-import {FaModule} from "./module";
 import config, {is_production} from "../config";
-import {init as init_stregsystem} from "./stregsystem";
+import * as stregsystem from "./stregsystem";
 
 (async () => {
     console.log(`Running in ${is_production ? "production" : "development"} mode.`);
@@ -8,7 +7,5 @@ import {init as init_stregsystem} from "./stregsystem";
         console.dir(config);
     }
 
-    await init_stregsystem();
-
-    customElements.define("fa-module", FaModule);
+    await stregsystem.init();
 })()

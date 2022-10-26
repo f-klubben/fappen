@@ -1,12 +1,14 @@
-import fs from "fs";
+import * as fs from "fs";
 import * as pug from "pug"
 
 import {promise_cond} from "./util/async";
-import {FaModule} from "./module"
 import config from "../config"
 
 const {base_api_url} = config;
-const product_template = fs.readFileSync(__dirname + '/../components/streg_product.pug', 'utf8');
+
+// @ts-ignore - the analyzer does not know how to deal with `bundle-text` imports
+import access_failure_msg from 'bundle-text:../components/stregsystem/access_failure.pug';
+const product_template = fs.readFileSync(__dirname + '/../components/fa-streg-product.pug', 'utf8');
 const product_builder = pug.compile(product_template);
 
 export interface UserProfile {
@@ -114,7 +116,15 @@ const post_sale = (buystring: string, room: number, user_id: number): Promise<Sa
 /**
  * Check whether the stregsystem can be reached.
  */
-export const check_access = async (): Promise<boolean> => (await fetch(`${base_api_url}`)).status < 500;
+export const check_access = async (): Promise<boolean> => {
+    try {
+        return (await fetch(`${base_api_url}/..`)).status == 200;
+    } catch (err) {
+        console.log("Stregsystem access check failed.");
+        console.log(err);
+        return false;
+    }
+}
 
 /**
  * Fetches a user profile by username.
@@ -130,7 +140,15 @@ export const fetch_profile = async (username: string): Promise<UserProfile> => {
     };
 }
 
-export class FaStregProduct extends HTMLDivElement {
+/*
+    UI / HTML Elements
+ */
+
+/**
+ * Custom HTML element class for element `<fa-streg-product>`.
+ * Represents a stregsystem product.
+ */
+class FaStregProduct extends HTMLDivElement {
     product_id: number;
     price: number;
     name: string;
@@ -147,13 +165,39 @@ export class FaStregProduct extends HTMLDivElement {
     }
 }
 
-export const init = async () => {
-    customElements.define("fa-stregproduct", FaStregProduct);
+class FaStregCart extends HTMLDivElement {
+    contents: {[id: number]: number};
+    constructor() {
+        super();
+    }
 
-    FaModule.register_module("stregsystem", async module => {
-        console.log("initiating stregsystem module")
-        if (await check_access() == false) {
-            console.log("unable to connect to stregsystem");
-        }
-    });
+    getBuyString(): string {
+        return Object.keys(this.contents)
+            .filter(key => this.contents[key] > 0)
+            .map(key => `${key}:${this.contents[key]}`)
+            .join(' ');
+    }
+}
+
+class FaStregsystem extends HTMLElement {
+    constructor() {
+        super();
+
+        (async (self) => {
+            console.log("initiating stregsystem module");
+            if (await check_access() == false) {
+                console.log("unable to connect to stregsystem");
+                self.classList.add('flex-center', 'center');
+                self.innerHTML = access_failure_msg;
+                return;
+            }
+        })(this)
+
+    }
+}
+
+export const init = async () => {
+    customElements.define("fa-streg-product", FaStregProduct, {extends: 'div'});
+    customElements.define("fa-streg-cart", FaStregCart, {extends: 'div'});
+    customElements.define("fa-stregsystem", FaStregsystem);
 }
