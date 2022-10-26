@@ -1,0 +1,27 @@
+name: Build songs
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get Repo
+      - uses: actions/checkout@v3
+      - name: Get python v3.10
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Checkout tools repo
+        uses: actions/checkout@v3
+        with:
+          repository: f-klubben/sangbog
+          path: sangbog
+
+      - name: Build songs
+        run: python build_songs
+      - name: Commit to github action branch
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: github-action
