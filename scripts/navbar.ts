@@ -1,3 +1,4 @@
+
 function toggleNavbar(){
     let element = document.getElementById("navLinks");
     if(element.style.display === "block"){
