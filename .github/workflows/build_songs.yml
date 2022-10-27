@@ -1,27 +1,34 @@
 name: Build songs
+on:
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
+
       - name: Get Repo
-      - uses: actions/checkout@v3
-      - name: Get python v3.10
-      - uses: actions/setup-python@v4
+        uses: actions/checkout@v3
+
+      - name: Setup python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - name: Checkout tools repo
+
+      - name: Get Songbook
         uses: actions/checkout@v3
         with:
           repository: f-klubben/sangbog
           path: sangbog
 
+      - name: Install pandoc
+        uses: r-lib/actions/setup-pandoc@v2
+
       - name: Build songs
-        run: python build_songs
-      - name: Commit to github action branch
-      - name: Create pull request
-        uses: peter-evans/create-pull-request@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: github-action
+        run: python util/build_songs.py
+#      - name: Commit to github action branch
+#      - name: Create pull request
+#        uses: peter-evans/create-pull-request@v4
+#        with:
+#          token: ${{ secrets.GITHUB_TOKEN }}
+#          branch: github-action

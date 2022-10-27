@@ -6,8 +6,8 @@ import shutil
 def main():
    in_path = os.path.join(os.path.curdir, 'sangbog', 'sange')
    out_path = os.path.join(os.path.curdir,  'pages', 'songbook', 'songs')
-   template_path = os.path.join(os.path.curdir, 'util','template.html')
-   pug_path = os.path.join(os.path.curdir, 'util','songbook.pug')
+   template_path = os.path.join(os.path.curdir, 'util', 'templates', 'tex_to.html')
+   pug_path = os.path.join(os.path.curdir, 'util', 'templates', 'songbook.pug')
    files = os.listdir(in_path)
    clean_folder(out_path)
    pug_res = ""
@@ -47,6 +47,4 @@ def get_song_name(file_path):
         match = reg.match(line)
         if match != None:
             return match.group(1)
-
-
 main()
