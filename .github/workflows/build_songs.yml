@@ -26,9 +26,15 @@ jobs:
 
       - name: Build songs
         run: python util/build_songs.py
-#      - name: Commit to github action branch
-#      - name: Create pull request
-#        uses: peter-evans/create-pull-request@v4
-#        with:
-#          token: ${{ secrets.GITHUB_TOKEN }}
-#          branch: github-action
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+            token: ${{ secrets.PAT }}
+            commit-message: Update song book to latest version
+            title: Update song book to latest version
+            body: |
+              - Update song book to latest version
+  
+              Auto-generated pull request
+            branch: update-song-book

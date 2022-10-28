@@ -29,7 +29,7 @@ def main():
 
    with open( os.path.join(os.path.curdir,  'pages', 'songbook', 'index.pug'), encoding="utf-8", mode="w") as f:
         f.write(pug_res)
-   #remove_folder(os.path.join(os.path.curdir, 'sangbog'))
+   remove_folder(os.path.join(os.path.curdir, 'sangbog'))
 
 def clean_folder(path):
     files = os.listdir(path)
