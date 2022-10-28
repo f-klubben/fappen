@@ -1,15 +1,10 @@
-import * as fs from "fs";
-import * as pug from "pug"
-
 import {promise_cond} from "./util/async";
 import config from "../config"
 
-const {base_api_url} = config;
+const {base_api_url, default_room} = config;
 
 // @ts-ignore - the analyzer does not know how to deal with `bundle-text` imports
 import access_failure_msg from 'bundle-text:../components/stregsystem/access_failure.pug';
-const product_template = fs.readFileSync(__dirname + '/../components/fa-streg-product.pug', 'utf8');
-const product_builder = pug.compile(product_template);
 
 export interface UserProfile {
     username: string,
@@ -44,7 +39,10 @@ interface SaleResponse {
 }
 
 interface ActiveProductList {
-    [product_id: string]: [string, number]
+    [product_id: string]: [
+        string, // Product name
+        number, // Price
+    ]
 }
 
 /*
@@ -67,7 +65,7 @@ const get_user_id = (username: string): Promise<number> =>
  */
 const get_user_info = (user_id: number): Promise<any> =>
     fetch(`${base_api_url}/member?member_id=${user_id}`)
-        .then(res => promise_cond(res.status === 200, res, res.text()))
+        .then(res => promise_cond(res.status === 200, res, res))
         .then(res => res.json());
 
 /**
@@ -76,7 +74,7 @@ const get_user_info = (user_id: number): Promise<any> =>
  */
 const get_user_balance = (user_id: number): Promise<number> =>
     fetch(`${base_api_url}/member/balance?member_id=${user_id}`)
-        .then(res => promise_cond(res.status === 200, res, res.text()))
+        .then(res => promise_cond(res.status === 200, res, res))
         .then(res => res.json())
         .then(value => value['balance']);
 
@@ -86,7 +84,7 @@ const get_user_balance = (user_id: number): Promise<number> =>
  */
 const get_active_products = (room_id: number): Promise<ActiveProductList> =>
     fetch(`${base_api_url}/products/active_products?room_id=${room_id}`)
-        .then(res => promise_cond(res.status === 200, res, res.text()))
+        .then(res => promise_cond(res.status === 200, res, res))
         .then(res => res.json())
 
 /**
@@ -105,7 +103,7 @@ const post_sale = (buystring: string, room: number, user_id: number): Promise<Sa
 
         body: JSON.stringify({buy_string: buystring, room, member_id: user_id})
     })
-        .then(res => promise_cond(res.status === 200, res, res.text()))
+        .then(res => promise_cond(res.status === 200, res, res))
         .then(res => res.json());
 
 
@@ -148,12 +146,12 @@ export const fetch_profile = async (username: string): Promise<UserProfile> => {
  * Custom HTML element class for element `<fa-streg-product>`.
  * Represents a stregsystem product.
  */
-class FaStregProduct extends HTMLDivElement {
+class FaStregProduct extends HTMLElement {
     product_id: number;
     price: number;
     name: string;
 
-    constructor(product_id: number, price: number, name: string) {
+    constructor(product_id: number, name: string, price: number) {
         super();
 
         this.product_id = product_id;
@@ -161,11 +159,11 @@ class FaStregProduct extends HTMLDivElement {
         this.name = name;
 
         // Maybe use shadow root instead?
-        this.innerHTML = product_builder({ price, name });
+        this.innerHTML = `${price} - ${name}`;
     }
 }
 
-class FaStregCart extends HTMLDivElement {
+class FaStregCart extends HTMLElement {
     contents: {[id: number]: number};
     constructor() {
         super();
@@ -191,13 +189,19 @@ class FaStregsystem extends HTMLElement {
                 self.innerHTML = access_failure_msg;
                 return;
             }
+
+            const active_products = await get_active_products(default_room);
+            const product_elements = Object.keys(active_products)
+                .map(key => new FaStregProduct(parseInt(key), ...active_products[key]));
+
+            self.append(...product_elements);
         })(this)
 
     }
 }
 
 export const init = async () => {
-    customElements.define("fa-streg-product", FaStregProduct, {extends: 'div'});
-    customElements.define("fa-streg-cart", FaStregCart, {extends: 'div'});
+    customElements.define("fa-streg-product", FaStregProduct);
+    customElements.define("fa-streg-cart", FaStregCart);
     customElements.define("fa-stregsystem", FaStregsystem);
 }
