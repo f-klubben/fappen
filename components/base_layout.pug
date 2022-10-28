@@ -1,0 +1,11 @@
+include core
+
+doctype html
+html(lang="en")
+    - const title = typeof page_title === 'string' ? `${page_title} - ${app_name}` : app_name;
+    +head(title)
+        block head
+    body
+        block content
+        +scripts
+            block scripts

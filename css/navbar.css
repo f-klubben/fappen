@@ -1,0 +1,31 @@
+.topnav{
+    overflow: visible;
+    position: relative;
+    background-color: #ffffff;
+    height: fit-content;
+    width: fit-content;
+}
+.topnav #navLinks {
+    display: none;
+}
+.topnav a{
+    color: #000000;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+    display: block;
+}
+.topnav a.icon{
+    background: #ffffff;
+    display: block;
+    left: 0;
+    top: 0;
+}
+.topnav a:hover {
+    background-color: #ddd;
+    color: black;
+}
+.navIndicator{
+    height: 5px;
+    width: 100%;
+}
