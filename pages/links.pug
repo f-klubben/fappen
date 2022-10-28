@@ -1,0 +1,10 @@
+extends ../components/base_layout
+
+block content
+    +navbar
+    div(class="content")
+    h1 Links to Fklub services
+    div(class="links")
+        each key in Object.keys(links)
+            a(href=links[key])
+                h3=key
