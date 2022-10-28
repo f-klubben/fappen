@@ -1,0 +1,39 @@
+name: Build songs
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Get Repo
+        uses: actions/checkout@v3
+
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Get Songbook
+        uses: actions/checkout@v3
+        with:
+          repository: f-klubben/sangbog
+          path: sangbog
+
+      - name: Install pandoc
+        uses: r-lib/actions/setup-pandoc@v2
+
+      - name: Build songs
+        run: python util/build_songs.py
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+            commit-message: Update song book to latest version
+            title: Update song book to latest version
+            body: |
+              - Update song book to latest version
+  
+              Auto-generated pull request
+            branch: update-song-book
