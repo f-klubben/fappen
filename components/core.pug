@@ -4,21 +4,13 @@ mixin head(page_title)
         title #{page_title}
         meta(charset="UTF-8")
         meta(name="viewport" content="width=device-width, initial-scale=1")
+        link(rel="stylesheet" href="../styles/base.scss")
         block
 
 mixin scripts
     script(type="module" src="../scripts/index.ts" defer async)
     block
-mixin navbar
-    link(rel="stylesheet" href="../css/navbar.css")
-    script(type="module" src="/scripts/navbar.ts" defer async)
-    div(class='topnav')
-        a(class="icon")
-            img(src="/media/flogo.svg" width="100" height="100px")
-        div(id='navLinks')
-            div(class='navIndicator' id='navIndicator')
-            each key in Object.keys(navigation)
-                a(href=navigation[key])
-                    li= key
 
+mixin vspace(length)
+    div(style={height: length})
 
