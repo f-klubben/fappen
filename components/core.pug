@@ -1,9 +1,14 @@
+include apple-core
 
 mixin head(page_title)
     head
         title #{page_title}
         meta(charset="UTF-8")
+        meta(name="theme-color" content=`${manifest.theme_color}`)
+        meta(name="msapplication-navbutton-color" content=`${manifest.theme_color}`)
         meta(name="viewport" content="width=device-width, initial-scale=1")
+        +apple-head
+        link(rel="manifest" href="../manifest.json")
         block
 
 mixin scripts
