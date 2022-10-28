@@ -1,9 +1,0 @@
-{
-  "locals": {
-    "app_name": "F-Appen",
-    "navigation": {
-      "Frontpage": "./index.pug",
-      "Stregsystem": "./stregsystem.pug"
-    }
-  }
-}
