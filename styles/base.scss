@@ -1,5 +1,29 @@
+:root {
+  /* css variables */
+  --bg1: #fff;
+  --fg1: #000;
+
+  --status-neutral: #333;
+  --status-offline: #F00;
+  --status-partial: #FF0;
+  --status-online: #0F0;
+
+  --active-status: var(--status-neutral);
+
+  /* actual root styles */
+  background-color: var(--bg1);
+}
+
 body {
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+main {
+  flex-grow: 1;
+  flex-shrink: 1;
 }
 
 .center {
@@ -9,4 +33,49 @@ body {
 .flex-center {
   align-content: center;
   justify-content: center;
+}
+
+/*
+  Header & navigation
+ */
+
+$header-base-height: 50px;
+$header-indicator-height: 5px;
+$header-full-height: $header-base-height + $header-indicator-height;
+
+header {
+
+  height: $header-full-height;
+  flex-grow: 0;
+  flex-shrink: 0;
+
+  .access-status-indicator {
+    border-bottom: $header-indicator-height solid var(--active-status);
+
+    &.online {
+      --active-status: var(--status-online);
+    }
+
+    &.offline {
+      --active-status: var(--status-offline);
+    }
+
+    &.partial {
+      --active-status: var(--status-partial);
+    }
+  }
+
+}
+
+aside {
+  display: none;
+  position: fixed;
+  top: $header-full-height;
+  width: 40%;
+  height: calc(100vh - $header-full-height);
+  background-color: var(--bg1);
+
+  &.active {
+    display: block;
+  }
 }

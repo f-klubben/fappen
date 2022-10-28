@@ -8,8 +8,10 @@
   },
   "devDependencies": {
     "@parcel/transformer-inline-string": "^2.7.0",
-    "@parcel/transformer-pug": "^2.7.0",
     "@parcel/transformer-sass": "^2.7.0",
+    "@parcel/packager-raw-url": "^2.7.0",
+    "@parcel/transformer-pug": "^2.7.0",
+    "@parcel/transformer-webmanifest": "^2.7.0",
     "@types/node": "^18.11.3",
     "@types/pug": "^2.0.6",
     "assert": "^2.0.0",
@@ -21,6 +23,9 @@
     "process": "^0.11.10"
   },
   "dependencies": {
+    "jstransformer-markdown-it": "^3.0.0",
+    "markdown-it-container": "^3.0.0",
     "pug": "^3.0.2"
   }
 }
+

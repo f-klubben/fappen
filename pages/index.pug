@@ -1,5 +1,12 @@
 extends ../components/base_layout
 
+block head
+    link(rel="stylesheet" href="../styles/frontpage.scss")
+
 block content
-    p Front page
-    a(href="./stregsystem.pug") Stregsystem
+    +vspace("25px")
+    img.big-logo(src="/media/flogo.svg" height="200")
+    +vspace("25px")
+    section.service-links
+        each key in Object.keys(navigation)
+            a.service-link(href=navigation[key])= key

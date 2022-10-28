@@ -116,6 +116,7 @@ const post_sale = (buystring: string, room: number, user_id: number): Promise<Sa
  */
 export const check_access = async (): Promise<boolean> => {
     try {
+        // TODO check whether API is available after verifying that stresystem is available
         return (await fetch(`${base_api_url}/..`)).status == 200;
     } catch (err) {
         console.log("Stregsystem access check failed.");
@@ -147,12 +148,16 @@ export const fetch_profile = async (username: string): Promise<UserProfile> => {
  * Represents a stregsystem product.
  */
 class FaStregProduct extends HTMLElement {
+    target_cart: FaStregCart;
+
     product_id: number;
     price: number;
     name: string;
 
-    constructor(product_id: number, name: string, price: number) {
+    constructor(target: FaStregCart, product_id: number, name: string, price: number) {
         super();
+
+        this.target_cart = target;
 
         this.product_id = product_id;
         this.price = price;
@@ -161,6 +166,9 @@ class FaStregProduct extends HTMLElement {
         // Maybe use shadow root instead?
         this.innerHTML = `${price} - ${name}`;
     }
+
+
+
 }
 
 class FaStregCart extends HTMLElement {
@@ -178,6 +186,9 @@ class FaStregCart extends HTMLElement {
 }
 
 class FaStregsystem extends HTMLElement {
+
+    cart: FaStregCart;
+
     constructor() {
         super();
 
@@ -190,9 +201,11 @@ class FaStregsystem extends HTMLElement {
                 return;
             }
 
+            self.cart = new FaStregCart();
+
             const active_products = await get_active_products(default_room);
             const product_elements = Object.keys(active_products)
-                .map(key => new FaStregProduct(parseInt(key), ...active_products[key]));
+                .map(key => new FaStregProduct(self.cart, parseInt(key), ...active_products[key]));
 
             self.append(...product_elements);
         })(this)
