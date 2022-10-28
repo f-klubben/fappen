@@ -1,4 +1,4 @@
-readFileSync = require("fs").readFileSync
+const readFileSync = require("fs").readFileSync;
 
 module.exports = {
     locals: {

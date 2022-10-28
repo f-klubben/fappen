@@ -5,12 +5,12 @@ export type {};
 declare const self: ServiceWorkerGlobalScope;
 
 const cacheName = "::F-App-ServiceWorker";
-const version = "v0.0.1";
+const version = "v0.0.2";
 
 self.addEventListener("install", function (event) {
     event.waitUntil(
         caches.open(version + cacheName).then(function (cache) {
-            return cache.addAll(["/", "/offline"]);
+            return cache.addAll(["/", "/offline", ""]);
         })
     );
 });
