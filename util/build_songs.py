@@ -9,16 +9,15 @@ def main():
     template_path = os.path.join(os.path.curdir, 'util', 'templates', 'tex_to.html')
     pug_path = os.path.join(os.path.curdir, 'util', 'templates', 'songbook.pug')
     black_list = ["enkortenlang.tex", "vendelboensfestsang.tex"]
-    if not os.path.exists(in_path):
-        os.mkdir(in_path)
     files = os.listdir(in_path)
-    clean_folder(out_path)
     pug_res = ""
     with open(pug_path, encoding="utf-8") as f:
         pug_res = f.read()
         pug_res += "\n"
     if not os.path.exists(out_path):
         os.mkdir(out_path)
+    else: 
+        clean_folder(out_path)
     for file in files:
         if file not in black_list:
             file_path = os.path.join(in_path, file)
