@@ -9,11 +9,15 @@ mixin head(page_title)
         meta(name="viewport" content="width=device-width, initial-scale=1")
         +apple-head
         link(rel="manifest" href="../manifest.json")
+        link(rel="stylesheet" href="../styles/base.scss")
         block
 
 mixin scripts
     script(type="module" src="../scripts/index.ts" defer async)
     block
+
+mixin vspace(length)
+    div(style={height: length})
 
 mixin navbar
     link(rel="stylesheet" href="../css/navbar.css")

@@ -1,7 +1,36 @@
 import {FaModule} from "./module";
 import config, {is_production} from "../config";
-import {init as init_stregsystem} from "./stregsystem";
-import {registerNavEvents} from "./navbar";
+import {init as init_stregsystem, check_access} from "./stregsystem";
+
+async function event_online() {
+    let has_access = await check_access();
+    document.querySelectorAll('.access-status-indicator')
+        ?.forEach(node => {
+            node.classList.remove("offline");
+            node.classList.add(has_access ? "online" : "partial");
+        })
+}
+
+function event_offline() {
+    document.querySelectorAll('.access-status-indicator')
+        ?.forEach(node => {
+            node.classList.remove("online", "partial");
+            node.classList.add("offline");
+        });
+}
+
+function toggle_sidebar() {
+    const sidebar = document.getElementById("sidebar-nav");
+    if (sidebar == null) {
+        console.error('Sidebar not found. Unable to toggle.');
+        return;
+    }
+
+    if (sidebar.classList.contains('active'))
+        sidebar.classList.remove('active');
+    else
+        sidebar.classList.add('active');
+}
 
 (async () => {
     if ("serviceWorker" in navigator) {
@@ -17,7 +46,31 @@ import {registerNavEvents} from "./navbar";
         console.dir(config);
     }
 
+    /*
+        Navigation sidebar
+     */
+
+    document.querySelectorAll('.nav-trigger')
+        ?.forEach(node => {
+            node.addEventListener('click', toggle_sidebar);
+        })
+
+    /*
+        Connectivity checks
+     */
+
+    window.addEventListener('online', event_online);
+    window.addEventListener('offline', event_offline);
+
+    if (navigator.onLine)
+        event_online();
+    else
+        event_offline();
+
+    /*
+        Init modules
+     */
+
     await init_stregsystem();
-    registerNavEvents();
     customElements.define("fa-module", FaModule);
 })()
