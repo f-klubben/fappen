@@ -9,7 +9,8 @@ module.exports = {
             Frontpage: "/pages/index.pug",
             Stregsystem: "/pages/stregsystem.pug",
             Songbook: "/pages/songbook/index.pug",
-            Links: "/pages/links.pug"
+            Links: "/pages/links.pug",
+            Offline: "/pages/offline.pug"
         },
         links: {
             Slack: "https://fklubben.slack.com",
