@@ -3,5 +3,20 @@
 fa-stregsystem {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* obviously TODO this needs to removed once proper core layout is established */
+
+  > div {
+    flex-grow: 1;
+    flex-shrink: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+}
+
+fa-streg-cart {
+  height: 55px;
+}
+
+fa-streg-product {
+
 }

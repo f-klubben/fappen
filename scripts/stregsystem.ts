@@ -116,7 +116,7 @@ const post_sale = (buystring: string, room: number, user_id: number): Promise<Sa
  */
 export const check_access = async (): Promise<boolean> => {
     try {
-        // TODO check whether API is available after verifying that stresystem is available
+        // TODO check whether API is available after verifying that stregsystem is available
         return (await fetch(`${base_api_url}/..`)).status == 200;
     } catch (err) {
         console.log("Stregsystem access check failed.");
@@ -167,7 +167,13 @@ class FaStregProduct extends HTMLElement {
         this.innerHTML = `${price} - ${name}`;
     }
 
-
+    addToCart() {
+        const cart_contents = this.target_cart.contents;
+        if (cart_contents[this.product_id] == null)
+            cart_contents[this.product_id] = 1;
+        else
+            cart_contents[this.product_id] += 1;
+    }
 
 }
 
@@ -175,6 +181,10 @@ class FaStregCart extends HTMLElement {
     contents: {[id: number]: number};
     constructor() {
         super();
+    }
+
+    update() {
+
     }
 
     getBuyString(): string {
@@ -203,11 +213,14 @@ class FaStregsystem extends HTMLElement {
 
             self.cart = new FaStregCart();
 
+            const product_container = document.createElement('div');
+
             const active_products = await get_active_products(default_room);
             const product_elements = Object.keys(active_products)
                 .map(key => new FaStregProduct(self.cart, parseInt(key), ...active_products[key]));
 
-            self.append(...product_elements);
+            product_container.append(...product_elements);
+            self.append(product_container, self.cart);
         })(this)
 
     }
