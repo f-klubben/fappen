@@ -1,10 +1,11 @@
 extends ../components/base_layout
+block head
+    link(rel="stylesheet" href="/styles/links.scss")
 
 block content
-    +navbar
-    div(class="content")
     h1 Links to Fklub services
-    div(class="links")
+    .links.border-outer
         each key in Object.keys(links)
             a(href=links[key])
-                h3=key
+                .border-inner
+                    h3=key

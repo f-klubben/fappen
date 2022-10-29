@@ -3,6 +3,9 @@
   --bg1: #fff;
   --fg1: #000;
 
+  --tba: lightgrey;
+  --tbb: black;
+
   --status-neutral: #333;
   --status-offline: #F00;
   --status-partial: #FF0;
@@ -22,8 +25,12 @@ body {
 }
 
 main {
+  display: flex;
   flex-grow: 1;
   flex-shrink: 1;
+  overflow: scroll;
+  flex-direction: column;
+  align-items: center;
 }
 
 /*
@@ -39,6 +46,7 @@ header {
   height: $header-full-height;
   flex-grow: 0;
   flex-shrink: 0;
+  border-bottom: 2px solid var(--tba);
 
   .access-status-indicator {
     border-bottom: $header-indicator-height solid var(--active-status);
@@ -64,9 +72,32 @@ aside {
   top: $header-full-height;
   width: 40%;
   height: calc(100vh - $header-full-height);
-  background-color: var(--bg1);
+  background-color: transparent;
 
   &.active {
     display: block;
+    height: fit-content;
   }
+  ul {
+    background-color: var(--bg1);
+    list-style-type: none;
+    padding: 0;
+    margin: 1px 0 0;
+
+    li {
+      padding: 0.2em;
+    }
+  }
+}
+
+/* Border style simulating html tables */
+.border-outer {
+  border: 1px solid var(--tba);
+}
+.border-inner {
+  border-left: 1px solid var(--tbb);
+  border-top: 1px solid var(--tbb);
+  border-right: 1px solid var(--tba);
+  border-bottom: 1px solid var(--tba);
+  margin: 2px;
 }
