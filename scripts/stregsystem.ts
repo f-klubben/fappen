@@ -1,12 +1,12 @@
 import fs from "fs";
-import * as pug from "pug"
+import * as pug from "pug";
 
 import {promise_cond} from "./util/async";
-import {FaModule} from "./module"
-import config from "../config"
+import {FaModule} from "./module";
+import config from "../config";
 
 const {base_api_url} = config;
-const product_template = fs.readFileSync(__dirname + '/../components/streg_product.pug', 'utf8');
+const product_template = fs.readFileSync(`${__dirname}/../components/streg_product.pug`, 'utf8');
 const product_builder = pug.compile(product_template);
 
 export interface UserProfile {
@@ -85,7 +85,7 @@ const get_user_balance = (user_id: number): Promise<number> =>
 const get_active_products = (room_id: number): Promise<ActiveProductList> =>
     fetch(`${base_api_url}/products/active_products?room_id=${room_id}`)
         .then(res => promise_cond(res.status === 200, res, res.text()))
-        .then(res => res.json())
+        .then(res => res.json());
 
 /**
  * Performs a sale request.
@@ -98,10 +98,9 @@ const post_sale = (buystring: string, room: number, user_id: number): Promise<Sa
         method: 'POST',
         cache: "no-cache",
         headers: {
-            "Content-Type": 'application/json'
+            "Content-Type": 'application/json',
         },
-
-        body: JSON.stringify({buy_string: buystring, room, member_id: user_id})
+        body: JSON.stringify({buy_string: buystring, room, member_id: user_id}),
     })
         .then(res => promise_cond(res.status === 200, res, res.text()))
         .then(res => res.json());
@@ -121,14 +120,14 @@ export const check_access = async (): Promise<boolean> => (await fetch(`${base_a
  * @param username
  */
 export const fetch_profile = async (username: string): Promise<UserProfile> => {
-    let user_id = await get_user_id(username);
-    let {name, active, balance} = await get_user_info(user_id);
+    const user_id = await get_user_id(username);
+    const {name, active, balance} = await get_user_info(user_id);
 
     return {
         username, id: user_id,
         name, active, balance,
     };
-}
+};
 
 export class FaStregProduct extends HTMLDivElement {
     product_id: number;
@@ -147,13 +146,15 @@ export class FaStregProduct extends HTMLDivElement {
     }
 }
 
-export const init = async () => {
+export const init = () => {
     customElements.define("fa-stregproduct", FaStregProduct);
 
-    FaModule.register_module("stregsystem", async module => {
-        console.log("initiating stregsystem module")
-        if (await check_access() == false) {
-            console.log("unable to connect to stregsystem");
-        }
+    FaModule.register_module("stregsystem", module => {
+        console.log("initiating stregsystem module");
+        void (async () => {
+            if (await check_access() === false) {
+                console.log("unable to connect to stregsystem");
+            }
+        })();
     });
-}
+};
