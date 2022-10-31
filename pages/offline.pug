@@ -1,4 +1,7 @@
-include ../components/core
-link(rel="stylesheet", href="../css/offline.css")
-p Du er offline :( Ingen Limfjords Porter til dig...
-img(src="../media/limfjordsporter.png", class="porter")
+extends ../components/base_layout
+
+block head
+    link(rel="stylesheet", href="/styles/offline.scss")
+block content
+    p Du er offline :( Ingen Limfjords Porter til dig...
+    img(src="/media/limfjordsporter.png").porter

@@ -33,7 +33,7 @@ function toggle_sidebar() {
 }
 
 void (async () => {
-    if ("serviceWorker" in navigator) {
+    if ("serviceWorker" in navigator && !document.disable_worker) {
         const worker = new URL("service-worker.ts", import.meta.url);
         void navigator.serviceWorker
             .register(worker, { scope: "/" })

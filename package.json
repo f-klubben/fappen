@@ -9,6 +9,7 @@
   "devDependencies": {
     "@parcel/packager-raw-url": "^2.7.0",
     "@parcel/transformer-pug": "^2.7.0",
+    "@parcel/transformer-sass": "^2.7.0",
     "@parcel/transformer-webmanifest": "^2.7.0",
     "@types/node": "^18.11.3",
     "@types/pug": "^2.0.6",

@@ -7,13 +7,9 @@ def main():
     in_path = os.path.join(os.path.curdir, 'sangbog', 'sange')
     out_path = os.path.join(os.path.curdir,  'pages', 'songbook', 'songs')
     template_path = os.path.join(os.path.curdir, 'util', 'templates', 'tex_to.html')
-    pug_path = os.path.join(os.path.curdir, 'util', 'templates', 'songbook.pug')
     black_list = ["enkortenlang.tex", "vendelboensfestsang.tex"]
     files = os.listdir(in_path)
-    pug_res = ""
-    with open(pug_path, encoding="utf-8") as f:
-        pug_res = f.read()
-        pug_res += "\n"
+    json_res =  {}
     if not os.path.exists(out_path):
         os.mkdir(out_path)
     else: 
@@ -28,10 +24,10 @@ def main():
             os.system(cmd)
             song_name = get_song_name(file_path)
             if song_name != None:
-                pug_res += f"        a(href='./songs/{file_name}.html') {song_name} #[br]\n"
+                json_res[song_name] = f"./songs/{file_name}.html"
 
-    with open( os.path.join(os.path.curdir,  'pages', 'songbook', 'index.pug'), encoding="utf-8", mode="w") as f:
-            f.write(pug_res)
+    with open( os.path.join(os.path.curdir,  'pages', 'songbook', 'songs.json'), encoding="utf-8", mode="w") as f:
+            f.write(json.dumps(json_res, ensure_ascii=False))
     remove_folder(os.path.join(os.path.curdir, 'sangbog'))
 
 def clean_folder(path):
