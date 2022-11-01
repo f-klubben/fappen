@@ -2,12 +2,12 @@ import config, {is_production} from "../config";
 import * as stregsystem from "./stregsystem";
 
 async function event_online() {
-    let has_access = await stregsystem.check_access();
+    const has_access = await stregsystem.check_access();
     document.querySelectorAll('.access-status-indicator')
         ?.forEach(node => {
             node.classList.remove("offline");
             node.classList.add(has_access ? "online" : "partial");
-        })
+        });
 }
 
 function event_offline() {
@@ -31,13 +31,12 @@ function toggle_sidebar() {
         sidebar.classList.add('active');
 }
 
-
-(async () => {
+void (async () => {
     if ("serviceWorker" in navigator && !document.disable_worker) {
-        let worker = new URL("service-worker.ts", import.meta.url)
-        navigator.serviceWorker
+        const worker = new URL("service-worker.ts", import.meta.url);
+        void navigator.serviceWorker
             .register(worker, { scope: "/" })
-            .then(function () {
+            .then(() => {
                 console.log("Service Worker Registered");
             });
     }
@@ -53,17 +52,17 @@ function toggle_sidebar() {
     document.querySelectorAll('.nav-trigger')
         ?.forEach(node => {
             node.addEventListener('click', toggle_sidebar);
-        })
+        });
 
     /*
         Connectivity checks
      */
 
-    window.addEventListener('online', event_online);
+    window.addEventListener('online', () => void event_online());
     window.addEventListener('offline', event_offline);
 
     if (navigator.onLine)
-        event_online();
+        void event_online();
     else
         event_offline();
 
