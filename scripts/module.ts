@@ -14,7 +14,7 @@
 export class FaModule extends HTMLElement {
     static module_registry = {};
     static register_module(name: string, init: (module: FaModule) => void) {
-        if (typeof this.module_registry[name] != "undefined") {
+        if (typeof this.module_registry[name] !== "undefined") {
             throw new Error(`Module by name ${name} has already been registered.`);
         }
 
@@ -24,12 +24,12 @@ export class FaModule extends HTMLElement {
     constructor() {
         super();
 
-        let module_name = this.getAttribute("name");
+        const module_name = this.getAttribute("name");
         if (module_name == null) {
             throw new Error("Missing required attribute 'name' on <fa-module> element.");
         }
 
-        let module_init = FaModule.module_registry[module_name];
+        const module_init = FaModule.module_registry[module_name];
         if (module_init == null) {
             throw new Error(`Module '${module_name}' is not registered.`);
         }
