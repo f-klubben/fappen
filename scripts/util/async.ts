@@ -4,12 +4,17 @@
  * (A few of them may actually be truly useful :) )
  */
 
-import {cond, Condition} from "./cond";
-import {Predicate} from "./common";
+import {cond, Condition, falsity} from "./cond";
+import {MapFn, PredicateFn, wrap} from "./common";
+
+/*
+    Declares extension methods for the `Promise<T>` type.
+    Actual implementations are separate from the declare block.
+ */
 
 declare global {
     interface Promise<T> {
-        if<U>(c: Predicate<T>, v: U): AsyncCondition<U>;
+        if<U>(c: PredicateFn<T>, v: U | MapFn<T, U>): AsyncCondition<U>;
     }
 }
 
@@ -24,11 +29,24 @@ declare global {
  * @param cond The condition that determines whether the chain will continue.
  * @param value The value that is to be resolved.
  * @param reason The reason for a rejection.
+ * @deprecated Use `AsyncCondition` through `Promise#if` instead
  */
 export const promise_cond = <T>(cond: boolean, value: T, reason?: any): Promise<T> =>
     cond ? Promise.resolve(value) : Promise.reject(reason);
 
-Promise.prototype.if = <U>(predicate, c_val) => new AsyncCondition<U>(this.then(val => cond(predicate(val), c_val)));
+/**
+ * Chains the promise into an `AsyncCondition` using the given predicate
+ * and the given value.
+ * @param predicate The predicate of the condition.
+ * @param cond_val A value or a function producing a value by mapping `T -> U`.
+ */
+Promise.prototype.if = function <U>(predicate, cond_val): AsyncCondition<U> {
+    if (typeof cond_val !== "function") {
+        cond_val = wrap(cond_val);
+    }
+
+    return new AsyncCondition<U>(this.then(val => cond(predicate(val), cond_val(val))))
+};
 
 export class AsyncCondition<A> {
 
@@ -38,26 +56,26 @@ export class AsyncCondition<A> {
         this.inner = p;
     }
 
-    then<B>(v: B): AsyncCondition<B> {
-        return new AsyncCondition(this.inner.then(cond => cond.then(v)));
+    then_use<B>(v: B): AsyncCondition<B> {
+        return new AsyncCondition(this.inner.then(cond => cond.then_use(v)));
     }
 
-    then_if<B>(f: (v: A) => Condition<B>): AsyncCondition<B> {
+    then_if<B>(f: MapFn<A, Condition<B>>): AsyncCondition<B> {
         return new AsyncCondition(this.inner.then(cond => cond.then_if(f)));
     }
 
-    then_if_async<B>(f: (v: A) => AsyncCondition<B>): AsyncCondition<B> {
+    then_if_async<B>(f: MapFn<A, AsyncCondition<B>>): AsyncCondition<B> {
         const {inner} = this;
         const new_inner = this.inner
             .then(cond => cond
                 .then_map(v => f(v).inner)
-                .else(inner)
+                .else_use(inner.then(cond => cond.then_if(() => falsity<B>())))
                 .resolve());
         return new AsyncCondition(new_inner);
     }
 
-    else(v: A): AsyncCondition<A> {
-        return new AsyncCondition<A>(this.inner.then(cond => cond.else(v)));
+    else_use(v: A): AsyncCondition<A> {
+        return new AsyncCondition<A>(this.inner.then(cond => cond.else_use(v)));
     }
 
     else_if(f: () => Condition<A>): AsyncCondition<A> {
@@ -79,7 +97,7 @@ export class AsyncCondition<A> {
 
     else_promise(fallback: A): Promise<A> {
         return this.inner
-            .then(cond => cond.else(fallback).resolve());
+            .then(cond => cond.else_use(fallback).resolve());
     }
 
 }

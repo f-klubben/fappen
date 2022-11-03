@@ -1,10 +1,12 @@
-import {falsity, if_promise, promise_cond} from "./util/async";
+import {promise_cond} from "./util/async";
 import config from "../config";
 
 const {base_api_url, default_room} = config;
 
 // @ts-ignore - the analyzer does not know how to deal with `bundle-text` imports
 import access_failure_msg from 'bundle-text:../components/stregsystem/access_failure.pug';
+// @ts-ignore - see above ^
+import access_no_api from 'bundle-text:../components/stregsystem/access_no_api.pug';
 
 export interface UserProfile {
     username: string,
@@ -110,10 +112,10 @@ const post_sale = (buystring: string, room: number, user_id: number): Promise<Sa
     Public interface
  */
 
-enum AccessStatus {
+export enum AccessStatus {
     StregsystemUnavailable = 0,
     StregsystemAvailable,
-    ApiUnavailable,
+    ApiAvailable,
 }
 
 /**
@@ -121,10 +123,10 @@ enum AccessStatus {
  */
 export const check_access = (): Promise<AccessStatus> =>
     fetch(`${base_api_url}/..`)
-        .if(res => res.status === 200, AccessStatus.ApiUnavailable)
+        .if(res => res.status === 200, AccessStatus.StregsystemAvailable)
         .then_if_async(state => fetch(`${base_api_url}/products/active_products?room_id=${default_room}`)
-            .if(res => res.status === 200, AccessStatus.StregsystemAvailable)
-            .else(state))
+            .if(res => res.status === 200, AccessStatus.ApiAvailable)
+            .else_use(state))
         .else_promise(AccessStatus.StregsystemUnavailable)
         .catch(err => {
             console.log("Stregsystem access check failed.");
@@ -212,17 +214,18 @@ class FaStregsystem extends HTMLElement {
 
         void (async (self) => {
             console.log("initiating stregsystem module");
-            if (await check_access() === AccessStatus.StregsystemUnavailable) {
-                // TODO change message depending on type of availability.
-                console.log("unable to connect to stregsystem");
-                self.classList.add('flex-center', 'center');
-                self.innerHTML = access_failure_msg;
-                return;
-            }
+
+            if ((await self.check_access()) === false)
+                return
 
             self.cart = new FaStregCart();
 
+            /*
+                Create product list
+             */
+
             const product_container = document.createElement('div');
+            product_container.classList.add("outer-border")
 
             const active_products = await get_active_products(default_room);
             const product_elements = Object.keys(active_products)
@@ -232,6 +235,22 @@ class FaStregsystem extends HTMLElement {
             self.append(product_container, self.cart);
         })(this);
 
+    }
+
+    async check_access(): Promise<boolean> {
+        const access_state = await check_access();
+        if (access_state === AccessStatus.StregsystemUnavailable) {
+            console.log("unable to connect to stregsystem");
+            this.classList.add('flex-center', 'center');
+            this.innerHTML = access_failure_msg;
+            return false;
+        } else if (access_state !== AccessStatus.ApiAvailable) {
+            console.log("target stregsystem instance does not have API support")
+            this.classList.add('flex-center', 'center');
+            this.innerHTML = access_no_api;
+            return false;
+        }
+        return true;
     }
 }
 

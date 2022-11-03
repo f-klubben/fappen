@@ -1,74 +1,89 @@
 import config, {is_production} from "../config";
 import * as stregsystem from "./stregsystem";
+import {AccessStatus} from "./stregsystem";
+
+declare global {
+    interface Document {
+        disable_worker?: boolean
+    }
+}
 
 async function event_online() {
-    const has_access = await stregsystem.check_access();
-    document.querySelectorAll('.access-status-indicator')
-        ?.forEach(node => {
-            node.classList.remove("offline");
-            node.classList.add(has_access ? "online" : "partial");
-        });
-}
+    const access_status = await stregsystem.check_access();
+    const elements = document.querySelectorAll('.access-status-indicator');
 
-function event_offline() {
-    document.querySelectorAll('.access-status-indicator')
-        ?.forEach(node => {
-            node.classList.remove("online", "partial");
+    if (access_status == AccessStatus.StregsystemUnavailable) {
+        elements?.forEach(node => {
             node.classList.add("offline");
+            node.classList.remove("online", "partial");
         });
-}
-
-function toggle_sidebar() {
-    const sidebar = document.getElementById("sidebar-nav");
-    if (sidebar == null) {
-        console.error('Sidebar not found. Unable to toggle.');
-        return;
+    } else {
+        elements?.forEach(node => {
+            node.classList.remove("offline", "online", "partial");
+            node.classList.add(access_status == AccessStatus.ApiAvailable ? "online" : "partial");
+        });
     }
-
-    if (sidebar.classList.contains('active'))
-        sidebar.classList.remove('active');
-    else
-        sidebar.classList.add('active');
 }
 
-void (async () => {
-    if ("serviceWorker" in navigator && !document.disable_worker) {
-        const worker = new URL("service-worker.ts", import.meta.url);
-        void navigator.serviceWorker
-            .register(worker, { scope: "/" })
-            .then(() => {
-                console.log("Service Worker Registered");
+    function event_offline() {
+        document.querySelectorAll('.access-status-indicator')
+            ?.forEach(node => {
+                node.classList.remove("online", "partial");
+                node.classList.add("offline");
             });
     }
-    console.log(`Running in ${is_production ? "production" : "development"} mode.`);
-    if (!is_production) {
-        console.dir(config);
+
+    function toggle_sidebar() {
+        const sidebar = document.getElementById("sidebar-nav");
+        if (sidebar == null) {
+            console.error('Sidebar not found. Unable to toggle.');
+            return;
+        }
+
+        if (sidebar.classList.contains('active'))
+            sidebar.classList.remove('active');
+        else
+            sidebar.classList.add('active');
     }
 
-    /*
-        Navigation sidebar
-     */
+    void (async () => {
+        if ("serviceWorker" in navigator && !document.disable_worker) {
+            const worker = new URL("service-worker.ts", import.meta.url);
+            void navigator.serviceWorker
+                .register(worker, {scope: "/"})
+                .then(() => {
+                    console.log("Service Worker Registered");
+                });
+        }
+        console.log(`Running in ${is_production ? "production" : "development"} mode.`);
+        if (!is_production) {
+            console.dir(config);
+        }
 
-    document.querySelectorAll('.nav-trigger')
-        ?.forEach(node => {
-            node.addEventListener('click', toggle_sidebar);
-        });
+        /*
+            Navigation sidebar
+         */
 
-    /*
-        Connectivity checks
-     */
+        document.querySelectorAll('.nav-trigger')
+            ?.forEach(node => {
+                node.addEventListener('click', toggle_sidebar);
+            });
 
-    window.addEventListener('online', () => void event_online());
-    window.addEventListener('offline', event_offline);
+        /*
+            Connectivity checks
+         */
 
-    if (navigator.onLine)
-        void event_online();
-    else
-        event_offline();
+        window.addEventListener('online', () => void event_online());
+        window.addEventListener('offline', event_offline);
 
-    /*
-        Init modules
-     */
+        if (navigator.onLine)
+            void event_online();
+        else
+            event_offline();
 
-    await stregsystem.init();
-})()
+        /*
+            Init modules
+         */
+
+        await stregsystem.init();
+    })()

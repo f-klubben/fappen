@@ -4,13 +4,14 @@
  * equivalent to a Maybe/Option type. The difference lies primarily
  * in the functions we use to produce and consume the structure.
  *
- * Mostly intended as a foundational structure for the `AsyncConditional` structure.
+ * Mostly intended as a foundational structure for the `AsyncConditional` structure,
+ * but can be used in a standalone manner.
  *
  * If we ever introduce a proper Maybe/Option type we should consider
  * making this into an alias/newtype of that, filling in gaps as needed.
  */
 
-import {Predicate} from "./common";
+import {PredicateFn} from "./common";
 
 /**
  * Produces a truth condition holding the specified value.
@@ -28,13 +29,13 @@ export const falsity = <T>(): Falsity<T> => new Falsity();
  * @param predicate The predicate determining the condition state.
  * @param v The conditional value.
  */
-export const cond = <T>(predicate: boolean, v: T) => predicate ? truth(v) : falsity();
+export const cond = <T>(predicate: boolean, v: T) => predicate ? truth(v) : falsity<T>();
 
 /**
  * Creates a function that will create a condition value based on a given predicate function and value.
  * @param p The predicate determining the condition state.
  */
-export const f_cond = <T, Input>(p: Predicate<Input>): (i: Input, v: T) => Condition<T> => (i, v) => cond(p(i), v);
+export const f_cond = <T, Input>(p: PredicateFn<Input>): (i: Input, v: T) => Condition<T> => (i, v) => cond(p(i), v);
 
 /**
  * An interface describing the common functionality of the `Condition<T>`
@@ -46,7 +47,7 @@ export interface Conditional<A> {
      * Short for `then_map(_ => v)`.
      * @param v The new value.
      */
-    then<B>(v: B): Condition<B>;
+    then_use<B>(v: B): Condition<B>;
 
     /**
      * Apply the given function `f` to the value bound by the condition.
@@ -65,7 +66,7 @@ export interface Conditional<A> {
      * if the current condition state is a falsity.
      * @param v
      */
-    else(v: A): Truth<A>;
+    else_use(v: A): Truth<A>;
 
     /**
      * Converts the condition into a truth state holding the result of the given function.
@@ -111,8 +112,8 @@ export class Truth<A> implements Conditional<A> {
         this.val = val;
     }
 
-    then(v: A): Truth<A> {
-        return truth(v);
+    then_use<B>(v: B): Truth<B> {
+        return truth<B>(v);
     }
 
     then_map<B>(f: (a: A) => B): Condition<B> {
@@ -132,7 +133,7 @@ export class Truth<A> implements Conditional<A> {
         return this.val;
     }
 
-    else(_: A): Truth<A> {
+    else_use(_: A): Truth<A> {
         return this;
     }
 
@@ -154,8 +155,8 @@ export class Truth<A> implements Conditional<A> {
 }
 
 export class Falsity<A> implements Conditional<A> {
-    then(_: A): Falsity<A> {
-        return this;
+    then_use<B>(_: B): Falsity<B> {
+        return falsity();
     }
 
     then_if<B>(f: (v: A) => Condition<B>): Condition<B> {
@@ -163,10 +164,10 @@ export class Falsity<A> implements Conditional<A> {
     }
 
     then_map<B>(f: (a: A) => B): Condition<B> {
-        return undefined;
+        return falsity();
     }
 
-    else(v: A): Truth<A> {
+    else_use(v: A): Truth<A> {
         return truth(v);
     }
 

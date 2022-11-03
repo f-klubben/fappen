@@ -2,11 +2,14 @@
   "include": ["scripts/**/*"],
   "exclude": ["node_modules"],
   "compilerOptions": {
+    "target": "es2022",
+    "module": "es2022",
     "lib": [
       "dom",
       "es5",
       "scripthost",
-      "es2015.promise"
+      "es2015.promise",
+      "ESNext"
     ]
   }
 }
