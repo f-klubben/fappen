@@ -1,4 +1,4 @@
-import {promise_cond} from "./util/async";
+import {AppEvent, promise_cond} from "./util/async";
 import config from "../config";
 
 const {base_api_url, default_room} = config;
@@ -7,7 +7,8 @@ const {base_api_url, default_room} = config;
 import access_failure_msg from 'bundle-text:../components/stregsystem/access_failure.pug';
 // @ts-ignore - see above ^
 import access_no_api from 'bundle-text:../components/stregsystem/access_no_api.pug';
-import {reduce_sum} from "./util/common";
+import {disable_loading_indicator, enable_loading_indicator, reduce_sum} from "./util/common";
+import {AppDatabase} from "./database";
 
 export interface UserProfile {
     username: string,
@@ -49,7 +50,7 @@ interface ActiveProductList {
 }
 
 /*
-    API Calls
+    API Calls - internal use only
  */
 
 /**
@@ -153,6 +154,20 @@ export const fetch_profile = async (username: string): Promise<UserProfile> => {
     UI / HTML Elements
  */
 
+const load_saved_profile = (): Promise<UserProfile> => AppDatabase.instance.settings
+    .get(AppDatabase.active_profile_key)
+    .then(profile => {
+        if (profile == null)
+            return Promise.reject(`Key \`${AppDatabase.active_profile_key}\` not found.`);
+        events.profile_loaded.dispatch(profile);
+        return profile;
+    });
+
+export const events = {
+    profile_loaded: new AppEvent<UserProfile>("profile_loaded"),
+    profile_balance_change: new AppEvent<{ old_balance: number, new_balance: number }>("profile_balance_change"),
+};
+
 /**
  * Formats a stregdollar price value as `XX.XX kr`
  * @param value
@@ -179,7 +194,6 @@ class FaStregProduct extends HTMLElement {
         this.price = price;
         this.name = name;
 
-        // Maybe use shadow root instead?
         this.innerHTML = `${name}<span>${format_stregdollar(price)}</span>`;
 
         this.addEventListener('click', this.addToCart);
@@ -265,7 +279,6 @@ class FaCartStregDialog extends HTMLDialogElement {
     constructor() {
         super();
 
-
     }
 }
 
@@ -285,22 +298,68 @@ class FaStregsystem extends HTMLElement {
 
             self.cart = new FaStregCart(self);
 
-            /*
-                Create product list
-             */
+            events.profile_loaded.register_handle(profile => this.render_catalogue(profile), true);
 
-            const product_container = document.createElement('div');
-            product_container.classList.add("border-outer")
-
-
-            this.catalogue = await get_active_products(default_room);
-            const product_elements = Object.keys(this.catalogue)
-                .map(key => new FaStregProduct(self.cart, parseInt(key), ...this.catalogue[key]));
-
-            product_container.append(...product_elements);
-            self.append(product_container, self.cart);
+            try {
+                await load_saved_profile();
+                // If the above succeeds the profile_loaded event will be dispatched
+                // causing `render_catalogue` to be called.
+            } catch (e) {
+                this.render_profile_prompt();
+            }
         })(this);
 
+    }
+
+    async render_catalogue(_: UserProfile) {
+        this.innerHTML = '';
+
+        const product_container = document.createElement('div');
+        product_container.classList.add("border-outer")
+
+        this.catalogue = await get_active_products(default_room);
+        const product_elements = Object.keys(this.catalogue)
+            .map(key => new FaStregProduct(this.cart, parseInt(key), ...this.catalogue[key]));
+
+        product_container.append(...product_elements);
+
+        this.append(product_container, this.cart);
+        disable_loading_indicator();
+    }
+
+    render_profile_prompt() {
+        const prompt_msg = 'In order to use stregsystemet you must first select the account that you will be using.';
+        this.classList.add('profile-prompt');
+        this.innerText = prompt_msg;
+
+        const name_input = document.createElement('input');
+        name_input.placeholder = 'Username';
+
+        const submit_button = document.createElement('button');
+        submit_button.innerText = 'Submit';
+
+        submit_button.addEventListener('click', async () => {
+            if (name_input.value.length === 0)
+                return;
+
+            this.style.display = 'none';
+            enable_loading_indicator();
+
+            const name = name_input.value;
+            try {
+                const profile = await fetch_profile(name);
+                AppDatabase.instance.settings.put(profile, AppDatabase.active_profile_key);
+                events.profile_loaded.dispatch(profile);
+            } catch (_) {
+                this.childNodes[0].nodeValue = `${prompt_msg} Unable to find user by name "${name}".`
+                disable_loading_indicator();
+            }
+
+            this.style.display = '';
+        });
+
+        this.append(name_input, submit_button);
+        disable_loading_indicator();
     }
 
     async check_access(): Promise<boolean> {

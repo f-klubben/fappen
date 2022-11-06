@@ -19,6 +19,9 @@ html(lang="en")
                         a(href=navigation[key])
                             li= key
         main
+            if show_load_indicator
+                #loading-indicator.spinner
+                    img(width="200" src="/media/fstjerne.svg")
             block content
             if hide_frit_fit !== true
                 p.frit-fit #fritfit (for real)

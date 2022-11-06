@@ -25,3 +25,11 @@ export const wrap = <T>(v: T) => () => v;
  * For use with `Array#reduce`.
  */
 export const reduce_sum = (acc: number, v: number) => acc + v;
+
+export const disable_loading_indicator = () => {
+    document.getElementById('loading-indicator').style.display = 'none';
+};
+
+export const enable_loading_indicator = () => {
+    document.getElementById('loading-indicator').style.display = 'block';
+};

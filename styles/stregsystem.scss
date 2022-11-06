@@ -7,6 +7,14 @@ fa-stregsystem {
   justify-content: space-between;
   width: 90%;
 
+  &.profile-prompt {
+    justify-content: flex-start;
+
+    input {
+      margin-bottom: 10px;
+    }
+  }
+
   > div {
     flex-shrink: 1;
     display: flex;

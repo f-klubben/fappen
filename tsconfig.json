@@ -2,6 +2,7 @@
   "include": ["scripts/**/*"],
   "exclude": ["node_modules"],
   "compilerOptions": {
+    "moduleResolution": "Node",
     "target": "es2022",
     "module": "es2022",
     "lib": [

@@ -9,7 +9,7 @@ import {MapFn, PredicateFn, wrap} from "./common";
 
 /*
     Declares extension methods for the `Promise<T>` type.
-    Actual implementations are separate from the declare block.
+    Actual implementations are separate from the declare-block.
  */
 
 declare global {
@@ -98,6 +98,33 @@ export class AsyncCondition<A> {
     else_promise(fallback: A): Promise<A> {
         return this.inner
             .then(cond => cond.else_use(fallback).resolve());
+    }
+
+}
+
+export class AppEvent<Event> {
+    handles: { once: boolean, fn: MapFn<Event, void> }[] = [];
+    id: string;
+
+    constructor(id: string) {
+        this.id = id;
+    }
+
+    register_handle(handle: MapFn<Event, void>, once: boolean = false) {
+        this.handles.push({once, fn: handle});
+    }
+
+    dispatch(event: Event) {
+        for (const handle of this.handles) {
+            try {
+                handle.fn(event);
+                if (handle.once)
+                    handle.fn = () => void 0;
+            } catch (e) {
+                console.error(`Error executing dispatch handle for event \`${this.id}\``);
+                console.error(e);
+            }
+        }
     }
 
 }
