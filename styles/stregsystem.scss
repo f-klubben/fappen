@@ -3,10 +3,11 @@
 fa-stregsystem {
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
+  justify-content: space-between;
   width: 90%;
 
   > div {
-    flex-grow: 1;
     flex-shrink: 1;
     display: flex;
     flex-direction: column;
@@ -16,8 +17,18 @@ fa-stregsystem {
 
 fa-streg-cart {
   height: 55px;
+  border-top: solid var(--fg1) 1px;
+
+  :nth-child(2) {
+    float: right;
+  }
 }
 
 fa-streg-product {
+  @extend .border-inner;
+  padding: 12px 8px;
 
+  > span {
+    float: right;
+  }
 }

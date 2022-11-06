@@ -7,6 +7,7 @@ const {base_api_url, default_room} = config;
 import access_failure_msg from 'bundle-text:../components/stregsystem/access_failure.pug';
 // @ts-ignore - see above ^
 import access_no_api from 'bundle-text:../components/stregsystem/access_no_api.pug';
+import {reduce_sum} from "./util/common";
 
 export interface UserProfile {
     username: string,
@@ -153,6 +154,12 @@ export const fetch_profile = async (username: string): Promise<UserProfile> => {
  */
 
 /**
+ * Formats a stregdollar price value as `XX.XX kr`
+ * @param value
+ */
+const format_stregdollar = (value: number): string => `${(value / 100).toFixed(2)} kr`;
+
+/**
  * Custom HTML element class for element `<fa-streg-product>`.
  * Represents a stregsystem product.
  */
@@ -173,7 +180,9 @@ class FaStregProduct extends HTMLElement {
         this.name = name;
 
         // Maybe use shadow root instead?
-        this.innerHTML = `${price} - ${name}`;
+        this.innerHTML = `${name}<span>${format_stregdollar(price)}</span>`;
+
+        this.addEventListener('click', this.addToCart);
     }
 
     addToCart() {
@@ -182,22 +191,67 @@ class FaStregProduct extends HTMLElement {
             cart_contents[this.product_id] = 1;
         else
             cart_contents[this.product_id] += 1;
+
+        this.target_cart.update();
     }
 
 }
 
 class FaStregCart extends HTMLElement {
-    contents: { [id: number]: number };
+    owner: FaStregsystem;
+    contents: { [id: number]: number } = {};
 
-    constructor() {
+    product_counter: HTMLSpanElement;
+    total_display: HTMLSpanElement;
+
+    constructor(owner: FaStregsystem) {
         super();
+
+        this.owner = owner;
+
+        this.product_counter = document.createElement('span');
+        this.total_display = document.createElement('span');
+
+        this.update();
+
+        const product_count = document.createElement('span')
+        product_count.innerText = 'Items: ';
+        product_count.append(this.product_counter);
+
+        this.append(product_count, this.total_display);
+
     }
 
+    /**
+     * Updates the HTML dom to reflect the current internal state.
+     */
     update() {
-
+        this.product_counter.innerText = this.compute_product_count().toString();
+        this.total_display.innerText = format_stregdollar(this.compute_total());
     }
 
-    getBuyString(): string {
+    /**
+     * Compute the total value of the carts contents.
+     */
+    compute_total(): number {
+        return Object.keys(this.contents)
+            .map(id => this.owner.catalogue[id][1] * this.contents[id])
+            .reduce(reduce_sum, 0);
+    }
+
+    /**
+     * Compute the number of items in the cart.
+     */
+    compute_product_count(): number {
+        return Object.keys(this.contents)
+            .map(key => this.contents[key])
+            .reduce(reduce_sum, 0);
+    }
+
+    /**
+     * Convert the cart contents into a stregsystem multibuy string.
+     */
+    get_buy_string(): string {
         return Object.keys(this.contents)
             .filter(key => this.contents[key] > 0)
             .map(key => `${key}:${this.contents[key]}`)
@@ -205,8 +259,19 @@ class FaStregCart extends HTMLElement {
     }
 }
 
+class FaCartStregDialog extends HTMLDialogElement {
+    cart: FaStregCart;
+
+    constructor() {
+        super();
+
+
+    }
+}
+
 class FaStregsystem extends HTMLElement {
 
+    catalogue: ActiveProductList;
     cart: FaStregCart;
 
     constructor() {
@@ -218,18 +283,19 @@ class FaStregsystem extends HTMLElement {
             if ((await self.check_access()) === false)
                 return
 
-            self.cart = new FaStregCart();
+            self.cart = new FaStregCart(self);
 
             /*
                 Create product list
              */
 
             const product_container = document.createElement('div');
-            product_container.classList.add("outer-border")
+            product_container.classList.add("border-outer")
 
-            const active_products = await get_active_products(default_room);
-            const product_elements = Object.keys(active_products)
-                .map(key => new FaStregProduct(self.cart, parseInt(key), ...active_products[key]));
+
+            this.catalogue = await get_active_products(default_room);
+            const product_elements = Object.keys(this.catalogue)
+                .map(key => new FaStregProduct(self.cart, parseInt(key), ...this.catalogue[key]));
 
             product_container.append(...product_elements);
             self.append(product_container, self.cart);
@@ -257,6 +323,7 @@ class FaStregsystem extends HTMLElement {
 export const init = () => {
     customElements.define("fa-streg-product", FaStregProduct);
     customElements.define("fa-streg-cart", FaStregCart);
+    customElements.define("fa-streg-cart-dialog", FaCartStregDialog)
     customElements.define("fa-stregsystem", FaStregsystem);
 };
 

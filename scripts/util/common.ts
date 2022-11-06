@@ -19,3 +19,9 @@ export type MapFn<A, B> = (a: A) => B;
  * @param v
  */
 export const wrap = <T>(v: T) => () => v;
+
+/**
+ * Computes the sum through reduction.
+ * For use with `Array#reduce`.
+ */
+export const reduce_sum = (acc: number, v: number) => acc + v;
