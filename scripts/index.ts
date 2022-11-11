@@ -8,11 +8,10 @@ declare global {
     }
 }
 
-async function event_online() {
-    const access_status = await stregsystem.check_access();
+function update_status_indicator(status: AccessStatus) {
     const elements = document.querySelectorAll('.access-status-indicator');
 
-    if (access_status == AccessStatus.StregsystemUnavailable) {
+    if (status == AccessStatus.StregsystemUnavailable) {
         elements?.forEach(node => {
             node.classList.add("offline");
             node.classList.remove("online", "partial");
@@ -20,17 +19,18 @@ async function event_online() {
     } else {
         elements?.forEach(node => {
             node.classList.remove("offline", "online", "partial");
-            node.classList.add(access_status == AccessStatus.ApiAvailable ? "online" : "partial");
+            node.classList.add(status == AccessStatus.ApiAvailable ? "online" : "partial");
         });
     }
 }
 
+async function event_online() {
+    const access_status = await stregsystem.check_access();
+    stregsystem.events.access_update.dispatch(access_status);
+}
+
 function event_offline() {
-    document.querySelectorAll('.access-status-indicator')
-        ?.forEach(node => {
-            node.classList.remove("online", "partial");
-            node.classList.add("offline");
-        });
+    stregsystem.events.access_update.dispatch(AccessStatus.StregsystemUnavailable);
 }
 
 function toggle_sidebar() {
@@ -78,6 +78,8 @@ void (async () => {
 
     window.addEventListener('online', () => void event_online());
     window.addEventListener('offline', event_offline);
+
+    stregsystem.events.access_update.register_handle(update_status_indicator);
 
     if (navigator.onLine)
         void event_online();

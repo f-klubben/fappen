@@ -49,6 +49,8 @@ interface ActiveProductList {
     ]
 }
 
+type BalanceChange = { old_balance: number, new_balance: number };
+
 /*
     API Calls - internal use only
  */
@@ -93,7 +95,8 @@ const get_active_products = (room_id: number): Promise<ActiveProductList> =>
 
 /**
  * Performs a sale request.
- * @param buystring A string describing the products that are to be purchased.
+ * @param buystring A string describing the products that are to be purchased,
+ *                  as well as the name of user performing the purchase.
  * @param room
  * @param user_id
  */
@@ -164,8 +167,10 @@ const load_saved_profile = (): Promise<UserProfile> => AppDatabase.instance.sett
     });
 
 export const events = {
+    ready: new AppEvent<null>("stregsystem_ready"),
+    access_update: new AppEvent<AccessStatus>("access_status"),
     profile_loaded: new AppEvent<UserProfile>("profile_loaded"),
-    profile_balance_change: new AppEvent<{ old_balance: number, new_balance: number }>("profile_balance_change"),
+    profile_balance_change: new AppEvent<BalanceChange>("profile_balance_change"),
 };
 
 /**
@@ -265,11 +270,12 @@ class FaStregCart extends HTMLElement {
     /**
      * Convert the cart contents into a stregsystem multibuy string.
      */
-    get_buy_string(): string {
-        return Object.keys(this.contents)
+    get_buy_string(username: string): string {
+        const a = Object.keys(this.contents)
             .filter(key => this.contents[key] > 0)
             .map(key => `${key}:${this.contents[key]}`)
             .join(' ');
+        return `${username} ${a}`;
     }
 }
 
@@ -282,33 +288,87 @@ class FaCartStregDialog extends HTMLDialogElement {
     }
 }
 
+/**
+ * HTML element used to display profile information in the header.
+ * Defines the custom element `<fa-profile-widget>`.
+ */
+class FaProfileWidget extends HTMLElement {
+    profile: UserProfile;
+
+    balance: Text;
+    username: Text;
+
+    constructor() {
+        super();
+        events.profile_loaded.register_handle(profile => this.on_profile_load(profile));
+        events.profile_balance_change.register_handle(change => this.on_balance_change(change));
+
+        this.balance = document.createTextNode("");
+        this.username = document.createTextNode("");
+        this.append(
+            this.username,
+            document.createElement('br'),
+            this.balance,
+            );
+    }
+
+    on_profile_load(profile: UserProfile) {
+        this.profile = profile;
+        this.username.textContent = profile.username;
+        this.balance.textContent = format_stregdollar(profile.balance);
+    }
+
+    on_balance_change(change: BalanceChange) {
+        this.balance.textContent = format_stregdollar(change.new_balance);
+    }
+}
+
 class FaStregsystem extends HTMLElement {
 
+    profile: UserProfile;
     catalogue: ActiveProductList;
     cart: FaStregCart;
 
     constructor() {
         super();
 
-        void (async (self) => {
-            console.log("initiating stregsystem module");
+        console.log("initiating stregsystem module");
 
-            if ((await self.check_access()) === false)
-                return
+        events.ready.register_handle(_ => this.on_ready());
+        events.profile_loaded.register_handle(profile => this.on_profile_loaded(profile));
+        events.access_update.register_handle(status => this.on_access_status(status))
 
-            self.cart = new FaStregCart(self);
 
-            events.profile_loaded.register_handle(profile => this.render_catalogue(profile), true);
+        this.cart = new FaStregCart(this);
 
-            try {
-                await load_saved_profile();
-                // If the above succeeds the profile_loaded event will be dispatched
-                // causing `render_catalogue` to be called.
-            } catch (e) {
-                this.render_profile_prompt();
-            }
-        })(this);
+    }
 
+    on_ready() {
+        if (this.profile == null) {
+            this.render_profile_prompt();
+        } else {
+            void this.render_catalogue(this.profile);
+        }
+    }
+
+    on_profile_loaded(profile: UserProfile) {
+        this.profile = profile;
+    }
+
+    /**
+     * This is executed when the access status is updated.
+     * @param status
+     */
+    on_access_status(status: AccessStatus) {
+        if (status === AccessStatus.StregsystemUnavailable) {
+            console.log("unable to connect to stregsystem");
+            this.classList.add('flex-center', 'center');
+            this.innerHTML = access_failure_msg;
+        } else if (status !== AccessStatus.ApiAvailable) {
+            console.log("target stregsystem instance does not have API support")
+            this.classList.add('flex-center', 'center');
+            this.innerHTML = access_no_api;
+        }
     }
 
     async render_catalogue(_: UserProfile) {
@@ -362,21 +422,6 @@ class FaStregsystem extends HTMLElement {
         disable_loading_indicator();
     }
 
-    async check_access(): Promise<boolean> {
-        const access_state = await check_access();
-        if (access_state === AccessStatus.StregsystemUnavailable) {
-            console.log("unable to connect to stregsystem");
-            this.classList.add('flex-center', 'center');
-            this.innerHTML = access_failure_msg;
-            return false;
-        } else if (access_state !== AccessStatus.ApiAvailable) {
-            console.log("target stregsystem instance does not have API support")
-            this.classList.add('flex-center', 'center');
-            this.innerHTML = access_no_api;
-            return false;
-        }
-        return true;
-    }
 }
 
 export const init = () => {
@@ -384,5 +429,12 @@ export const init = () => {
     customElements.define("fa-streg-cart", FaStregCart);
     customElements.define("fa-streg-cart-dialog", FaCartStregDialog)
     customElements.define("fa-stregsystem", FaStregsystem);
+    customElements.define("fa-profile-widget", FaProfileWidget);
+
+    load_saved_profile()
+        .finally(() => {
+            events.ready.dispatch(null);
+        });
+
 };
 

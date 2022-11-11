@@ -102,18 +102,35 @@ export class AsyncCondition<A> {
 
 }
 
+/**
+ * A class for declaring events that can occur during the application runtime.
+ * This is used to allow modules to expose information in a manner that
+ * is less tightly coupled, hopefully reducing duplication and complexity.
+ */
 export class AppEvent<Event> {
     handles: { once: boolean, fn: MapFn<Event, void> }[] = [];
     id: string;
 
+    /**
+     * @param id An identifier for the event that is used when logging errors.
+     */
     constructor(id: string) {
         this.id = id;
     }
 
+    /**
+     * Register a new event handle that will be called upon event occurrences.
+     * @param handle A function that accepts the event information.
+     * @param once A boolean flag used to specify that the handle may only be invoked once.
+     */
     register_handle(handle: MapFn<Event, void>, once: boolean = false) {
         this.handles.push({once, fn: handle});
     }
 
+    /**
+     * Dispatch an event occurrence, invoking the registered handles.
+     * @param event The event data.
+     */
     dispatch(event: Event) {
         for (const handle of this.handles) {
             try {
