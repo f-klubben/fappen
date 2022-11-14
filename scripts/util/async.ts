@@ -121,9 +121,12 @@ export class AppEvent<Event> {
     /**
      * Register a new event handle that will be called upon event occurrences.
      * @param handle A function that accepts the event information.
+     * @param bind_target
      * @param once A boolean flag used to specify that the handle may only be invoked once.
      */
-    register_handle(handle: MapFn<Event, void>, once: boolean = false) {
+    register_handle(handle: MapFn<Event, void>, bind_target: any = null, once: boolean = false) {
+        if (bind_target != null)
+            handle = handle.bind(bind_target);
         this.handles.push({once, fn: handle});
     }
 

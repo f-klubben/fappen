@@ -7,7 +7,7 @@ const {base_api_url, default_room} = config;
 import access_failure_msg from 'bundle-text:../components/stregsystem/access_failure.pug';
 // @ts-ignore - see above ^
 import access_no_api from 'bundle-text:../components/stregsystem/access_no_api.pug';
-import {disable_loading_indicator, enable_loading_indicator, reduce_sum} from "./util/common";
+import {disable_loading_indicator, enable_loading_indicator, pointer_events, reduce_sum} from "./util/common";
 import {AppDatabase} from "./database";
 
 export interface UserProfile {
@@ -107,7 +107,7 @@ const post_sale = (buystring: string, room: number, user_id: number): Promise<Sa
         headers: {
             "Content-Type": 'application/json',
         },
-        body: JSON.stringify({buy_string: buystring, room, member_id: user_id}),
+        body: JSON.stringify({buystring, room, member_id: `${user_id}`}),
     })
         .then(res => promise_cond(res.status === 200, res, res))
         .then(res => res.json());
@@ -201,7 +201,33 @@ class FaStregProduct extends HTMLElement {
 
         this.innerHTML = `${name}<span>${format_stregdollar(price)}</span>`;
 
-        this.addEventListener('click', this.addToCart);
+        pointer_events(this, {
+            click: this.addToCart.bind(this),
+            hold: [800, this.purchaseSingle.bind(this)],
+        });
+    }
+
+    async purchaseSingle() {
+        if (confirm(`Do you want to purchase 1 x ${this.name} for ${format_stregdollar(this.price)}`)) {
+            const {profile} = this.target_cart.owner;
+            if (profile.balance < this.price) {
+                alert("You cannot afford this purchase. It will be cancelled.");
+                return;
+            }
+
+            enable_loading_indicator();
+            try {
+                await post_sale(`${profile.username} ${this.product_id}`, default_room, profile.id);
+                const new_balance = await get_user_balance(profile.id);
+                events.profile_balance_change.dispatch( {old_balance: profile.balance, new_balance });
+            } catch (err) {
+                alert("Purchase failed.");
+                console.error(err);
+            }  finally {
+                disable_loading_indicator()
+            }
+
+        }
     }
 
     addToCart() {
@@ -300,8 +326,8 @@ class FaProfileWidget extends HTMLElement {
 
     constructor() {
         super();
-        events.profile_loaded.register_handle(profile => this.on_profile_load(profile));
-        events.profile_balance_change.register_handle(change => this.on_balance_change(change));
+        events.profile_loaded.register_handle(this.on_profile_load, this);
+        events.profile_balance_change.register_handle(this.on_balance_change, this);
 
         this.balance = document.createTextNode("");
         this.username = document.createTextNode("");
@@ -334,9 +360,9 @@ class FaStregsystem extends HTMLElement {
 
         console.log("initiating stregsystem module");
 
-        events.ready.register_handle(_ => this.on_ready());
-        events.profile_loaded.register_handle(profile => this.on_profile_loaded(profile));
-        events.access_update.register_handle(status => this.on_access_status(status))
+        events.ready.register_handle(this.on_ready, this);
+        events.profile_loaded.register_handle(this.on_profile_loaded, this);
+        events.access_update.register_handle(this.on_access_status, this)
 
 
         this.cart = new FaStregCart(this);
