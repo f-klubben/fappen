@@ -110,6 +110,10 @@ aside {
 #loading-indicator {
   position: relative;
   top: calc((100vh - 200px) / 2 - $header-full-height);
+
+  &.natural-pos {
+    position: static;
+  }
 }
 
 .spinner {
@@ -136,4 +140,12 @@ aside {
   border-right: 1px solid var(--tba);
   border-bottom: 1px solid var(--tba);
   margin: 2px;
+}
+
+dialog::backdrop {
+  background-color: #00000040;
+}
+
+.table-rule {
+  border-top: 1px solid #0007;
 }

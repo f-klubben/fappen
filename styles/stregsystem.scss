@@ -27,7 +27,7 @@ fa-streg-cart {
   height: 55px;
   border-top: solid var(--fg1) 1px;
 
-  :nth-child(2) {
+  > :nth-child(2) {
     float: right;
   }
 }
@@ -38,5 +38,54 @@ fa-streg-product {
 
   > span {
     float: right;
+  }
+}
+
+fa-streg-cart-dialog {
+  position: relative;
+  width: 100%;
+  display: block;
+
+  &[mode="hidden"] {
+    display: none;
+  }
+
+  &[mode="preview"] dialog {
+    width: 100%;
+    position: absolute;
+    bottom: 22px;
+    left: -5%;
+
+    form {
+      display: none;
+    }
+  }
+
+  form {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  dialog {
+    background-color: var(--bg1);
+    border: none;
+    width: 85%;
+    height: fit-content;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  table td {
+    padding-top: 3px;
+  }
+
+  table tr > :nth-child(3),
+  table tr > :nth-child(4) {
+    text-align: right;
   }
 }

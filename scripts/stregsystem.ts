@@ -7,7 +7,13 @@ const {base_api_url, default_room} = config;
 import access_failure_msg from 'bundle-text:../components/stregsystem/access_failure.pug';
 // @ts-ignore - see above ^
 import access_no_api from 'bundle-text:../components/stregsystem/access_no_api.pug';
-import {disable_loading_indicator, enable_loading_indicator, pointer_events, reduce_sum} from "./util/common";
+import {
+    as_tuples,
+    disable_loading_indicator,
+    enable_loading_indicator,
+    pointer_events,
+    reduce_sum, text
+} from "./util/common";
 import {AppDatabase} from "./database";
 
 export interface UserProfile {
@@ -179,6 +185,8 @@ export const events = {
  */
 const format_stregdollar = (value: number): string => `${(value / 100).toFixed(2)} kr`;
 
+type CartDialogResponse = "" | "confirm";
+
 /**
  * Custom HTML element class for element `<fa-streg-product>`.
  * Represents a stregsystem product.
@@ -215,15 +223,15 @@ class FaStregProduct extends HTMLElement {
                 return;
             }
 
-            enable_loading_indicator();
+            enable_loading_indicator(true);
             try {
                 await post_sale(`${profile.username} ${this.product_id}`, default_room, profile.id);
                 const new_balance = await get_user_balance(profile.id);
-                events.profile_balance_change.dispatch( {old_balance: profile.balance, new_balance });
+                events.profile_balance_change.dispatch({old_balance: profile.balance, new_balance});
             } catch (err) {
                 alert("Purchase failed.");
                 console.error(err);
-            }  finally {
+            } finally {
                 disable_loading_indicator()
             }
 
@@ -244,9 +252,12 @@ class FaStregProduct extends HTMLElement {
 
 class FaStregCart extends HTMLElement {
     owner: FaStregsystem;
+    dialog: FaStregCartDialog;
     contents: { [id: number]: number } = {};
 
-    product_counter: HTMLSpanElement;
+    last_update: number;
+
+    product_counter: Text;
     total_display: HTMLSpanElement;
 
     constructor(owner: FaStregsystem) {
@@ -254,24 +265,59 @@ class FaStregCart extends HTMLElement {
 
         this.owner = owner;
 
-        this.product_counter = document.createElement('span');
-        this.total_display = document.createElement('span');
+        this.product_counter = text('');
+        this.total_display = text('', 'span');
 
         this.update();
 
-        const product_count = document.createElement('span')
-        product_count.innerText = 'Items: ';
+        const product_count = text('Items: ', 'span');
         product_count.append(this.product_counter);
 
-        this.append(product_count, this.total_display);
+        this.dialog = new FaStregCartDialog(this);
 
+        this.append(product_count, this.total_display, this.dialog);
+
+        pointer_events(this, {
+            click: this.on_click.bind(this),
+            hold: [800, this.on_hold.bind(this), this.on_release.bind(this)],
+        });
+
+    }
+
+    async on_click() {
+        const response = await this.dialog.show();
+        if (response !== "confirm" || Object.keys(this.contents).length === 0)
+            return;
+
+        const {profile} = this.owner;
+        const buy_string = this.get_buy_string(profile.username)
+        enable_loading_indicator(true);
+        try {
+            await post_sale(buy_string, default_room, profile.id);
+            const new_balance = await get_user_balance(profile.id);
+            events.profile_balance_change.dispatch({old_balance: profile.balance, new_balance});
+            this.contents = {};
+        } catch (e) {
+            alert("Purchase failed.")
+            console.error(e);
+        }
+        disable_loading_indicator();
+    }
+
+    on_hold() {
+        this.dialog.open_preview();
+    }
+
+    on_release() {
+        this.dialog.close_preview();
     }
 
     /**
      * Updates the HTML dom to reflect the current internal state.
      */
     update() {
-        this.product_counter.innerText = this.compute_product_count().toString();
+        this.last_update = Date.now();
+        this.product_counter.textContent = this.compute_product_count().toString();
         this.total_display.innerText = format_stregdollar(this.compute_total());
     }
 
@@ -305,12 +351,153 @@ class FaStregCart extends HTMLElement {
     }
 }
 
-class FaCartStregDialog extends HTMLDialogElement {
+class FaStregCartDialog extends HTMLElement {
     cart: FaStregCart;
+    dialog: HTMLDialogElement;
+    table: HTMLTableSectionElement;
 
-    constructor() {
+    last_update: number;
+
+    constructor(cart) {
         super();
+        this.setAttribute("mode", "hidden");
 
+        this.cart = cart;
+
+        const table = document.createElement('table');
+        const head = document.createElement('thead');
+        const h_row = document.createElement('tr');
+        h_row.append(
+            text('product', 'td'),
+            text('count', 'td'),
+            text('price', 'td'),
+            text('total', 'td'),
+        );
+
+        head.append(h_row)
+        this.table = document.createElement('tbody');
+
+        table.append(head, this.table);
+
+        this.dialog = document.createElement('dialog');
+        this.dialog.append(table);
+        // Stop pointer event propagation past the model.
+        // Also closes the model if the backdrop is clicked.
+        this.dialog.addEventListener('pointerdown', function (e) {
+            e.stopPropagation();
+            const {left, right, top, bottom} = (e.target as HTMLElement).getBoundingClientRect();
+            if (e.clientX < left || right < e.clientX || e.clientY < top || bottom < e.clientY) {
+                this.close();
+            }
+        });
+
+        const dialog_form = document.createElement('form');
+        dialog_form.method = 'dialog';
+
+        dialog_form.append(
+            text('cancel', 'button'),
+            text('confirm', 'button'),
+        );
+
+        (dialog_form.children[0] as HTMLButtonElement).value = "";
+        (dialog_form.children[1] as HTMLButtonElement).value = "confirm";
+
+        this.dialog.append(dialog_form);
+        this.append(this.dialog);
+    }
+
+    confirm_purchase(): Promise<CartDialogResponse> {
+        return new Promise((resolve) => {
+            const {dialog} = this;
+            const cb = () => {
+                dialog.removeEventListener('close', cb);
+                resolve(dialog.returnValue as CartDialogResponse);
+            };
+
+            dialog.addEventListener('close', cb);
+            this.dialog.showModal();
+        })
+    }
+
+    close_preview() {
+        this.setAttribute("mode", "hidden");
+        this.dialog.close("");
+    }
+
+    open_preview() {
+        if (this.dialog.open)
+            return;
+
+        this.generate_table_contents();
+        this.setAttribute("mode", "preview");
+        this.dialog.show();
+    }
+
+    async show(): Promise<CartDialogResponse> {
+        // This case typically occurs if the user taps the backdrop.
+        // We just dismiss the modal when this happens.
+        if (this.dialog.open) {
+            this.dialog.close("");
+            return "";
+        }
+
+        this.generate_table_contents();
+        this.setAttribute("mode", "modal");
+
+        const response = await this.confirm_purchase();
+
+        this.setAttribute("mode", "hidden");
+        return response;
+    }
+
+    generate_table_contents() {
+        if (this.last_update === this.cart.last_update)
+            return;
+
+        const {catalogue, profile} = this.cart.owner;
+        const contents = as_tuples(this.cart.contents);
+        let product_rows;
+
+        if (contents.length > 0) {
+            product_rows = contents.map(([id, count]) => {
+                const row = document.createElement('tr');
+
+                row.append(
+                    text(catalogue[id][0], 'td'), // name
+                    text(count.toString(), 'td'), // count
+                    text(format_stregdollar(catalogue[id][1]), 'td'), // indv price
+                    text(format_stregdollar(catalogue[id][1] * count), 'td'), // total
+                );
+
+                return row;
+            });
+        } else {
+            const row = document.createElement('tr');
+            row.append(text('Your cart is empty!', 'td'));
+            product_rows = [row];
+        }
+
+        product_rows[0].classList.add('table-rule');
+
+        const total = this.cart.compute_total();
+        const summary_rows = [["Total", total], ["New Balance", profile.balance - total]]
+            .map(([label, price]) => {
+                const row = document.createElement('tr');
+
+                row.append(
+                    text(label as string, 'td'),
+                    text('', 'td'),
+                    text('', 'td'),
+                    text(format_stregdollar(price as number), 'td'),
+                )
+
+                return row;
+            })
+
+        summary_rows[0].classList.add('table-rule')
+
+        this.table.innerHTML = '';
+        this.table.append(...product_rows, ...summary_rows);
     }
 }
 
@@ -335,7 +522,7 @@ class FaProfileWidget extends HTMLElement {
             this.username,
             document.createElement('br'),
             this.balance,
-            );
+        );
     }
 
     on_profile_load(profile: UserProfile) {
@@ -453,9 +640,14 @@ class FaStregsystem extends HTMLElement {
 export const init = () => {
     customElements.define("fa-streg-product", FaStregProduct);
     customElements.define("fa-streg-cart", FaStregCart);
-    customElements.define("fa-streg-cart-dialog", FaCartStregDialog)
+    customElements.define("fa-streg-cart-dialog", FaStregCartDialog)
     customElements.define("fa-stregsystem", FaStregsystem);
     customElements.define("fa-profile-widget", FaProfileWidget);
+
+    events.profile_balance_change.register_handle(({new_balance}) => {
+        AppDatabase.instance.settings
+            .update(AppDatabase.active_profile_key, {balance: new_balance});
+    });
 
     load_saved_profile()
         .finally(() => {

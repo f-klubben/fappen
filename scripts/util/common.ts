@@ -31,16 +31,52 @@ export const wrap = <T>(v: T) => () => v;
  */
 export const reduce_sum = (acc: number, v: number) => acc + v;
 
+/**
+ * Computes a list of key-value tuples from an obj.
+ * Example: `as_tuples({ a: 4, b: 'test' }) = [['a', 4], ['b', 'test']]`
+ * @param obj
+ */
+export const as_tuples = (obj: Object): [any, any][] =>
+    Object.keys(obj)
+        .map(key => [key, obj[key]]);
+
+
+export function text(text: string): Text;
+export function text<K extends keyof HTMLElementTagNameMap>(text: string, node_type: K): HTMLElementTagNameMap[K];
+
+/**
+ * A shorthand function for creating a text node or HTML element
+ * and setting its text content.
+ * @param text
+ * @param node_type
+ */
+export function text(text: string, node_type?: string) {
+    if (node_type) {
+        const node = document.createElement(node_type);
+        node.innerText = text;
+
+        return node
+    }
+    return document.createTextNode(text);
+}
+
 export const disable_loading_indicator = () => {
-    document.getElementById('loading-indicator').style.display = 'none';
+    const indicator = document.getElementById('loading-indicator');
+    indicator.style.display = 'none';
+    indicator.classList.remove('natural-pos');
 };
 
 /**
  * Enables the loading indicator. Note this still
  * requires the element to have been added manually to the page.
+ * The function will throw if not present.
  */
-export const enable_loading_indicator = () => {
-    document.getElementById('loading-indicator').style.display = 'block';
+export const enable_loading_indicator = (natural_pos: boolean = false) => {
+    const indicator = document.getElementById('loading-indicator');
+    indicator.style.display = 'block';
+
+    if (natural_pos)
+        indicator.classList.add('natural-pos');
 };
 
 /**
@@ -72,7 +108,7 @@ export interface PointerHandles {
      * A handle that responds to press and hold interactions.
      * The first element is how long the press has to be held for in milliseconds.
      */
-    hold?: [length: number, handle: Action],
+    hold?: [length: number, hold_handle: Action, release_handle?: Action],
 
     /**
      * A normal click event handle. Note that the presence of the `n_click` handle will
@@ -112,6 +148,7 @@ export const pointer_events = (target: HTMLElement, handles: PointerHandles) => 
 
     const check_hold = 'hold' in handles;
     let hold_timeout;
+    let trigger_release = false;
 
     target.addEventListener('pointerdown', e => {
         if (e.button !== 0 || active_pointer != null)
@@ -126,11 +163,19 @@ export const pointer_events = (target: HTMLElement, handles: PointerHandles) => 
                 active_pointer = null;
                 hold_timeout = null;
                 handle();
+
+                if (handles.hold.length === 3)
+                    trigger_release = true;
             }, length);
         }
     });
 
     target.addEventListener('pointerup', e => {
+        if (e.button === 0 && trigger_release) {
+            trigger_release = false;
+            handles.hold[2]();
+        }
+
         if (e.button !== 0 || e.pointerId != active_pointer)
             return;
 
@@ -146,7 +191,6 @@ export const pointer_events = (target: HTMLElement, handles: PointerHandles) => 
     });
 
     target.addEventListener('pointercancel', e => {
-        console.log(`pointercancel`)
         if (e.pointerId == active_pointer) {
             active_pointer = null;
             if (hold_timeout != null) {
