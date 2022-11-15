@@ -45,7 +45,7 @@ Promise.prototype.if = function <U>(predicate, cond_val): AsyncCondition<U> {
         cond_val = wrap(cond_val);
     }
 
-    return new AsyncCondition<U>(this.then(val => cond(predicate(val), cond_val(val))))
+    return new AsyncCondition<U>(this.then(val => cond(predicate(val), cond_val(val))));
 };
 
 export class AsyncCondition<A> {

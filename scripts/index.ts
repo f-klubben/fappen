@@ -11,7 +11,7 @@ declare global {
 function update_status_indicator(status: AccessStatus) {
     const elements = document.querySelectorAll('.access-status-indicator');
 
-    if (status == AccessStatus.StregsystemUnavailable) {
+    if (status === AccessStatus.StregsystemUnavailable) {
         elements?.forEach(node => {
             node.classList.add("offline");
             node.classList.remove("online", "partial");
@@ -19,7 +19,7 @@ function update_status_indicator(status: AccessStatus) {
     } else {
         elements?.forEach(node => {
             node.classList.remove("offline", "online", "partial");
-            node.classList.add(status == AccessStatus.ApiAvailable ? "online" : "partial");
+            node.classList.add(status === AccessStatus.ApiAvailable ? "online" : "partial");
         });
     }
 }
@@ -49,7 +49,7 @@ function toggle_sidebar() {
 /*
     Main function
  */
-void (async () => {
+void (() => {
     if ("serviceWorker" in navigator && !document.disable_worker) {
         const worker = new URL("service-worker.ts", import.meta.url);
         void navigator.serviceWorker
@@ -90,5 +90,5 @@ void (async () => {
         Init modules
      */
 
-    await stregsystem.init();
-})()
+    stregsystem.init();
+})();

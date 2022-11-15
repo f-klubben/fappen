@@ -12,7 +12,7 @@ import {
     disable_loading_indicator,
     enable_loading_indicator,
     pointer_events,
-    reduce_sum, text
+    reduce_sum, text, void_promise,
 } from "./util/common";
 import {AppDatabase} from "./database";
 
@@ -232,7 +232,7 @@ class FaStregProduct extends HTMLElement {
                 alert("Purchase failed.");
                 console.error(err);
             } finally {
-                disable_loading_indicator()
+                disable_loading_indicator();
             }
 
         }
@@ -290,7 +290,7 @@ class FaStregCart extends HTMLElement {
             return;
 
         const {profile} = this.owner;
-        const buy_string = this.get_buy_string(profile.username)
+        const buy_string = this.get_buy_string(profile.username);
         enable_loading_indicator(true);
         try {
             await post_sale(buy_string, default_room, profile.id);
@@ -298,7 +298,7 @@ class FaStregCart extends HTMLElement {
             events.profile_balance_change.dispatch({old_balance: profile.balance, new_balance});
             this.contents = {};
         } catch (e) {
-            alert("Purchase failed.")
+            alert("Purchase failed.");
             console.error(e);
         }
         disable_loading_indicator();
@@ -374,7 +374,7 @@ class FaStregCartDialog extends HTMLElement {
             text('total', 'td'),
         );
 
-        head.append(h_row)
+        head.append(h_row);
         this.table = document.createElement('tbody');
 
         table.append(head, this.table);
@@ -416,7 +416,7 @@ class FaStregCartDialog extends HTMLElement {
 
             dialog.addEventListener('close', cb);
             this.dialog.showModal();
-        })
+        });
     }
 
     close_preview() {
@@ -489,12 +489,12 @@ class FaStregCartDialog extends HTMLElement {
                     text('', 'td'),
                     text('', 'td'),
                     text(format_stregdollar(price as number), 'td'),
-                )
+                );
 
                 return row;
-            })
+            });
 
-        summary_rows[0].classList.add('table-rule')
+        summary_rows[0].classList.add('table-rule');
 
         this.table.innerHTML = '';
         this.table.append(...product_rows, ...summary_rows);
@@ -549,7 +549,7 @@ class FaStregsystem extends HTMLElement {
 
         events.ready.register_handle(this.on_ready, this);
         events.profile_loaded.register_handle(this.on_profile_loaded, this);
-        events.access_update.register_handle(this.on_access_status, this)
+        events.access_update.register_handle(this.on_access_status, this);
 
 
         this.cart = new FaStregCart(this);
@@ -578,7 +578,7 @@ class FaStregsystem extends HTMLElement {
             this.classList.add('flex-center', 'center');
             this.innerHTML = access_failure_msg;
         } else if (status !== AccessStatus.ApiAvailable) {
-            console.log("target stregsystem instance does not have API support")
+            console.log("target stregsystem instance does not have API support");
             this.classList.add('flex-center', 'center');
             this.innerHTML = access_no_api;
         }
@@ -588,7 +588,7 @@ class FaStregsystem extends HTMLElement {
         this.innerHTML = '';
 
         const product_container = document.createElement('div');
-        product_container.classList.add("border-outer")
+        product_container.classList.add("border-outer");
 
         this.catalogue = await get_active_products(default_room);
         const product_elements = Object.keys(this.catalogue)
@@ -611,7 +611,7 @@ class FaStregsystem extends HTMLElement {
         const submit_button = document.createElement('button');
         submit_button.innerText = 'Submit';
 
-        submit_button.addEventListener('click', async () => {
+        submit_button.addEventListener('click', void_promise(async () => {
             if (name_input.value.length === 0)
                 return;
 
@@ -621,15 +621,15 @@ class FaStregsystem extends HTMLElement {
             const name = name_input.value;
             try {
                 const profile = await fetch_profile(name);
-                AppDatabase.instance.settings.put(profile, AppDatabase.active_profile_key);
+                await AppDatabase.instance.settings.put(profile, AppDatabase.active_profile_key);
                 events.profile_loaded.dispatch(profile);
             } catch (_) {
-                this.childNodes[0].nodeValue = `${prompt_msg} Unable to find user by name "${name}".`
+                this.childNodes[0].nodeValue = `${prompt_msg} Unable to find user by name "${name}".`;
                 disable_loading_indicator();
             }
 
             this.style.display = '';
-        });
+        }));
 
         this.append(name_input, submit_button);
         disable_loading_indicator();
@@ -640,12 +640,12 @@ class FaStregsystem extends HTMLElement {
 export const init = () => {
     customElements.define("fa-streg-product", FaStregProduct);
     customElements.define("fa-streg-cart", FaStregCart);
-    customElements.define("fa-streg-cart-dialog", FaStregCartDialog)
+    customElements.define("fa-streg-cart-dialog", FaStregCartDialog);
     customElements.define("fa-stregsystem", FaStregsystem);
     customElements.define("fa-profile-widget", FaProfileWidget);
 
     events.profile_balance_change.register_handle(({new_balance}) => {
-        AppDatabase.instance.settings
+        void AppDatabase.instance.settings
             .update(AppDatabase.active_profile_key, {balance: new_balance});
     });
 

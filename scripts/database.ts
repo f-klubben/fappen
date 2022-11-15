@@ -22,6 +22,6 @@ export class AppDatabase extends Dexie {
         this.version(1)
             .stores({
                 settings: '',
-            })
+            });
     }
 }

@@ -26,6 +26,18 @@ export type Action = () => void;
 export const wrap = <T>(v: T) => () => v;
 
 /**
+ * Removes return type information from a callback function.
+ * This is how we state explicitly that we do not care about
+ * a promise returned from a callback going unused.
+ *
+ * This is just a type cast, doesn't actually do anything with the value.
+ * @param cb
+ */
+export const void_promise = <R>(cb: (...a: any) => any) => {
+    return cb as (...a: any) => void;
+};
+
+/**
  * Computes the sum through reduction.
  * For use with `Array#reduce`.
  */
@@ -55,7 +67,7 @@ export function text(text: string, node_type?: string) {
         const node = document.createElement(node_type);
         node.innerText = text;
 
-        return node
+        return node;
     }
     return document.createTextNode(text);
 }
@@ -176,7 +188,7 @@ export const pointer_events = (target: HTMLElement, handles: PointerHandles) => 
             handles.hold[2]();
         }
 
-        if (e.button !== 0 || e.pointerId != active_pointer)
+        if (e.button !== 0 || e.pointerId !== active_pointer)
             return;
 
         if (hold_timeout != null) {
@@ -191,13 +203,13 @@ export const pointer_events = (target: HTMLElement, handles: PointerHandles) => 
     });
 
     target.addEventListener('pointercancel', e => {
-        if (e.pointerId == active_pointer) {
+        if (e.pointerId === active_pointer) {
             active_pointer = null;
             if (hold_timeout != null) {
                 clearTimeout(hold_timeout);
                 hold_timeout = null;
             }
         }
-    })
+    });
 
 };
