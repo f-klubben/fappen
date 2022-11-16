@@ -624,13 +624,13 @@ class FaStregsystem extends HTMLElement {
                 const profile = await fetch_profile(name);
                 await AppDatabase.instance.settings.put(profile, AppDatabase.active_profile_key);
                 events.profile_loaded.dispatch(profile);
+                this.classList.remove('profile-prompt');
                 await this.render_catalogue(profile);
             } catch (_) {
                 this.childNodes[0].nodeValue = `${prompt_msg} Unable to find user by name "${name}".`;
                 disable_loading_indicator();
             }
 
-            this.classList.remove('profile-prompt');
             this.style.display = '';
 
         }));
