@@ -193,6 +193,7 @@ type CartDialogResponse = "" | "confirm";
  */
 class FaStregProduct extends HTMLElement {
     target_cart: FaStregCart;
+    decrement_btn: HTMLButtonElement;
 
     product_id: number;
     price: number;
@@ -207,7 +208,15 @@ class FaStregProduct extends HTMLElement {
         this.price = price;
         this.name = name;
 
-        this.innerHTML = `${name}<span>${format_stregdollar(price)}</span>`;
+        this.innerHTML = `${name}<span>${format_stregdollar(price)} <button class="dec">-</button></span>`;
+
+        this.decrement_btn = this.querySelector('.dec') as HTMLButtonElement;
+        this.decrement_btn.style.display = 'none';
+
+        pointer_events(this.decrement_btn, {
+            n_click: this.removeFromCart.bind(this),
+            stop_propagation: true,
+        });
 
         pointer_events(this, {
             click: this.addToCart.bind(this),
@@ -238,12 +247,29 @@ class FaStregProduct extends HTMLElement {
         }
     }
 
+    removeFromCart(_, bounces: number) {
+        const cart_contents = this.target_cart.contents;
+        if (bounces === 0) {
+            cart_contents[this.product_id] -= 1 + bounces;
+        } else if (bounces >= 2) {
+            cart_contents[this.product_id] = 0;
+        }
+
+        if (cart_contents[this.product_id] === 0) {
+            delete cart_contents[this.product_id];
+            this.decrement_btn.style.display = 'none';
+        }
+        this.target_cart.update();
+    }
+
     addToCart() {
         const cart_contents = this.target_cart.contents;
-        if (cart_contents[this.product_id] == null)
+        if (cart_contents[this.product_id] == null) {
             cart_contents[this.product_id] = 1;
-        else
+            this.decrement_btn.style.display = '';
+        } else {
             cart_contents[this.product_id] += 1;
+        }
 
         this.target_cart.update();
     }
@@ -604,7 +630,11 @@ class FaStregsystem extends HTMLElement {
 
         product_container.append(...product_elements);
 
-        this.append(product_container, this.cart);
+        this.append(
+            "Individual items can be purchased by pressing and holding on a product.",
+            product_container,
+            this.cart,
+        );
         disable_loading_indicator();
     }
 

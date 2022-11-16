@@ -138,6 +138,13 @@ export interface PointerHandles {
      * @param b The number bounces that occurred (this is click_count - 1).
      */
     n_click?: (e: PointerEvent, b: number) => void,
+
+    /**
+     * Calls `e.stopPropagation` on events. This is needed since
+     * the debouncing function interferes when trying to do it
+     * from the final handler.
+     */
+    stop_propagation?: boolean,
 }
 
 /**
@@ -163,6 +170,9 @@ export const pointer_events = (target: HTMLElement, handles: PointerHandles) => 
     let trigger_release = false;
 
     target.addEventListener('pointerdown', e => {
+        if (handles.stop_propagation === true)
+            e.stopPropagation();
+
         if (e.button !== 0 || active_pointer != null)
             return;
 
