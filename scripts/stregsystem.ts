@@ -455,6 +455,8 @@ class FaStregCartDialog extends HTMLElement {
         if (this.last_update === this.cart.last_update)
             return;
 
+        this.last_update = this.cart.last_update;
+
         const {catalogue, profile} = this.cart.owner;
         const contents = as_tuples(this.cart.contents);
         let product_rows;
@@ -550,6 +552,7 @@ class FaStregsystem extends HTMLElement {
 
         events.ready.register_handle(this.on_ready, this);
         events.profile_loaded.register_handle(this.on_profile_loaded, this);
+        events.profile_balance_change.register_handle(this.on_profile_balance_change, this);
         events.access_update.register_handle(this.on_access_status, this);
 
 
@@ -567,6 +570,10 @@ class FaStregsystem extends HTMLElement {
 
     on_profile_loaded(profile: UserProfile) {
         this.profile = profile;
+    }
+
+    on_profile_balance_change(change: BalanceChange) {
+        this.profile.balance = change.new_balance;
     }
 
     /**
