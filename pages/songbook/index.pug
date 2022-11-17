@@ -1,10 +1,9 @@
 extends  ../../components/base_layout.pug
 block head
     link(rel="stylesheet" href="/styles/songbook.scss")
+    script(type="module", src="/scripts/songbook.ts")
 block content
     h1 Songbook
-    .links.border-outer
-        each key in Object.keys(songs)
-            a(href=songs[key])
-                .border-inner
-                    p=key
+    input.search#search
+    +vspace("25px")
+    .links.border-outer#links
