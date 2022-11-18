@@ -1,5 +1,13 @@
 extends ../components/base_layout
 
+block pug_meta
+    - const page_title = "Stregsystemet";
+    - const hide_frit_fit = true;
+    - const show_load_indicator = true;
+
+block head
+    link(rel="stylesheet" href="../styles/stregsystem.scss")
+
 block content
-    p test
-    fa-module(name="stregsystem")
+    +vspace("25px")
+    fa-stregsystem
