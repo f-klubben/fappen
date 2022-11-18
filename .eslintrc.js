@@ -60,5 +60,6 @@ module.exports = {
         "operator-linebreak": err("before"),
         "@typescript-eslint/no-misused-promises": err(),
         "@typescript-eslint/no-floating-promises": err(),
+        "@typescript-eslint/await-thenable": err(),
     }
 }

@@ -1,6 +1,5 @@
-// / <reference lib="WebWorker" />
+/// <reference lib="WebWorker" />
 // export empty type because of tsc --isolatedModules flag
-// TODO: add a /offline page in case we need it
 export type {};
 declare const self: ServiceWorkerGlobalScope;
 

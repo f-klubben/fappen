@@ -1,5 +1,7 @@
 include core
 
+block pug_meta
+
 - const title = typeof page_title === 'string' ? `${page_title} - ${app_name}` : app_name;
 
 doctype html
@@ -10,6 +12,7 @@ html(lang="en")
         header
             a.nav-trigger(href="#")
                 img.access-status-indicator(src="/media/flogo.svg" height="50")
+            fa-profile-widget
         aside#sidebar-nav
             ul.border-outer
                 each key in Object.keys(navigation)
@@ -17,7 +20,11 @@ html(lang="en")
                         a(href=navigation[key])
                             li= key
         main
+            if show_load_indicator
+                #loading-indicator.spinner
+                    img(width="200" src="/media/fstjerne.svg")
             block content
-            p.frit-fit #fritfit (for real)
+            if hide_frit_fit !== true
+                p.frit-fit #fritfit (for real)
         +scripts
             block scripts

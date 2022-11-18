@@ -33,6 +33,15 @@ main {
   align-items: center;
 }
 
+.center {
+  text-align: center;
+}
+
+.flex-center {
+  align-content: center;
+  justify-content: center;
+}
+
 /*
   Header & navigation
  */
@@ -64,6 +73,13 @@ header {
     }
   }
 
+  fa-profile-widget {
+    float: right;
+    text-align: right;
+    margin-right: 5px;
+    margin-top: 5px;
+  }
+
 }
 
 aside {
@@ -78,6 +94,7 @@ aside {
     display: block;
     height: fit-content;
   }
+
   ul {
     background-color: var(--bg1);
     list-style-type: none;
@@ -90,14 +107,45 @@ aside {
   }
 }
 
+#loading-indicator {
+  position: relative;
+  top: calc((100vh - 200px) / 2 - $header-full-height);
+
+  &.natural-pos {
+    position: static;
+  }
+}
+
+.spinner {
+  animation: rotation 5s infinite linear;
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+
 /* Border style simulating html tables */
 .border-outer {
   border: 1px solid var(--tba);
 }
+
 .border-inner {
   border-left: 1px solid var(--tbb);
   border-top: 1px solid var(--tbb);
   border-right: 1px solid var(--tba);
   border-bottom: 1px solid var(--tba);
   margin: 2px;
+}
+
+dialog::backdrop {
+  background-color: #00000040;
+}
+
+.table-rule {
+  border-top: 1px solid #0007;
 }

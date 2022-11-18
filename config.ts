@@ -1,4 +1,4 @@
-import dev_config from "./config.dev"
+import dev_config from "./config.dev";
 
 export const is_production = process.env.NODE_ENV === 'production';
 
