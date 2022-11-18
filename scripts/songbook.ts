@@ -1,9 +1,9 @@
 // @ts-ignore
 import songs from "../pages/songbook/songs.json";
-import {text_to_array, search} from "../scripts/util/search";
+import {string_to_array, similiarity} from "../scripts/util/search";
 
-let search_element = document.getElementById("search") as HTMLInputElement;
-let links_element = document.getElementById("links");
+const search_element = document.getElementById("search") as HTMLInputElement;
+const links_element = document.getElementById("links");
 
 
 interface SongElement {
@@ -16,46 +16,46 @@ interface SongElement {
 let song_elements: SongElement[] = [];
 
 function create_song_element(key: string, link: string, index: number): SongElement {
-    let a = document.createElement("a") as HTMLAnchorElement;
+    const a = document.createElement("a");
     a.href = link;
-    let d = document.createElement("div") as HTMLDivElement;
+    const d = document.createElement("div");
     d.className = "border-inner";
-    let p = document.createElement("p") as HTMLParagraphElement;
+    const p = document.createElement("p");
     p.innerText = key;
     d.appendChild(p);
     a.appendChild(d);
     return {
         element: a,
-        search: text_to_array(key),
+        search: string_to_array(key),
         score: 0,
         index: index,
     };
 }
 
 search_element.addEventListener("change", (e: KeyboardEvent) => {
-    let a = search_element.value;
-    if (a == "") {
+    const a = search_element.value;
+    if (a === "") {
         links_element.innerHTML = "";
         song_elements = song_elements.sort((a, b) => a.index - b.index);
     } else {
-        for(let song of song_elements)
-        song.score = search(text_to_array(a), song.search);
+        for(const song of song_elements)
+            song.score = similiarity(string_to_array(a), song.search);
 
         song_elements = song_elements.sort((a, b) => a.score - b.score);
         links_element.innerHTML = "";
     }
-    for(let song_element of song_elements)
+    for(const song_element of song_elements)
         links_element.appendChild(song_element.element);
 });
 
 document.addEventListener("DOMContentLoaded", _ => {
     let i = 0;
-    for(let key in songs) 
+    for(const key in songs) 
         song_elements.push(create_song_element(key, songs[key], i++));
 
     links_element.innerHTML = "";
 
-    for(let song_element of song_elements)
+    for(const song_element of song_elements)
         links_element.appendChild(song_element.element);
 });
 
