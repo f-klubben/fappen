@@ -1,17 +1,21 @@
 {
-  "name": "f-appen",
+  "name": "fappen",
   "source": "pages/index.pug",
   "scripts": {
     "start": "parcel pages/index.pug pages/songbook/songs/*.pug",
     "build": "parcel build",
-    "cors-proxy": "node cors-proxy.js"
+    "cors-proxy": "node cors-proxy.js",
+    "build-docs": "ts-docs "
   },
   "devDependencies": {
+    "@knodes/typedoc-plugin-pages": "^0.23.1",
     "@parcel/packager-raw-url": "^2.7.0",
     "@parcel/transformer-inline-string": "^2.7.0",
     "@parcel/transformer-pug": "^2.7.0",
     "@parcel/transformer-sass": "^2.7.0",
     "@parcel/transformer-webmanifest": "^2.7.0",
+    "@ts-docs/default-docs-structure": "^0.4.4",
+    "@ts-docs/ts-docs": "^0.4.4",
     "@types/node": "^18.11.3",
     "@types/pug": "^2.0.6",
     "@typescript-eslint/eslint-plugin": "^5.41.0",
