@@ -3,7 +3,7 @@ import re
 import json
 import shutil
 import fileinput
-import re
+
 
 def main():
     in_path = os.path.join(os.path.curdir, 'sangbog', 'sange')
@@ -34,7 +34,8 @@ def main():
 
             song_name = get_song_name(file_path)
             if song_name != None:
-                json_res[song_name] = f"./songs/{file_name}.html"
+                make_song_pug_file(os.path.join(out_path , file_name), file_name)
+                json_res[song_name] = f"./songs/{file_name}.pug"
 
 
 
@@ -45,12 +46,13 @@ def main():
     remove_folder(os.path.join(os.path.curdir, 'sangbog'))
     for file in os.listdir(out_path):
         file_path = os.path.join(out_path, file)
-        with open(file_path) as f:
-            s = f.read()
-            s = s.replace("NEWLINE", "<br/>")
-            s = "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> \n" + s
-        with open(file_path, "w") as f:
-           f.write(s)
+        if file_path.endswith('.html'):
+            with open(file_path) as f:
+                s = f.read()
+                s = s.replace("NEWLINE", "<br/>")
+                s = "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> \n" + s
+            with open(file_path, "w") as f:
+               f.write(s)
 
 
 def clean_folder(path):
@@ -71,6 +73,14 @@ def get_song_name(file_path):
         match = reg.match(line)
         if match != None:
             return match.group(1)
+
+
+def make_song_pug_file(file_path, file_name):
+    with open(file_path + ".pug", mode = "w") as f:
+        pug_text = "extends ../../../components/base_layout \n" \
+                   "block content \n" \
+                   f"    include {file_name}.html"
+        f.write(pug_text)
 
 
 main()
