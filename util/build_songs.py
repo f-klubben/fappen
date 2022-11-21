@@ -3,7 +3,7 @@ import re
 import json
 import shutil
 import fileinput
-
+import re
 
 def main():
     in_path = os.path.join(os.path.curdir, 'sangbog', 'sange')
@@ -24,7 +24,8 @@ def main():
 
             with open(file_path) as f:
                 s = f.read()
-                s = s.replace("\n", "<\n NEWLINE>")
+                s = s.replace("\n", "\n NEWLINE")
+                s = re.sub(r"\\kern(-?)(\d\.\d|\d)+(em|cm|px|pt)", "", s)
             with open(file_path, "w") as f:
                 f.write(s)
 
@@ -46,8 +47,6 @@ def main():
         file_path = os.path.join(out_path, file)
         with open(file_path) as f:
             s = f.read()
-            s = s.replace("&lt;", "")
-            s = s.replace("&gt;", "")
             s = s.replace("NEWLINE", "<br/>")
             s = "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> \n" + s
         with open(file_path, "w") as f:
