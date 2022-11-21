@@ -35,7 +35,7 @@ def main():
             song_name = get_song_name(file_path)
             if song_name != None:
                 make_song_pug_file(os.path.join(out_path , file_name), file_name)
-                json_res[song_name] = f"./songs/{file_name}.pug"
+                json_res[song_name] = f"./songs/{file_name}.html"
 
 
 
