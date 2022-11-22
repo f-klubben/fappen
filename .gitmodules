@@ -1,0 +1,3 @@
+[submodule "extern/ts-extractor-singlefile-modules"]
+	path = extern/ts-extractor-singlefile-modules
+	url = git@github.com:jonasKjellerup/ts-extractor-singlefile-modules.git

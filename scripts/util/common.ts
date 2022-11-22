@@ -1,5 +1,4 @@
 /**
- * @module Common
  * A module containing common type definitions
  * and helper functions.
  */
