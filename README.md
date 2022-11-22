@@ -25,6 +25,9 @@ For more information on building and developing the project build and read the d
 This can be done as follows:
 
 ```bash
+git submodule init
+git submodule update
+
 npm run setup-doc-extractor
 npm i --force
 
