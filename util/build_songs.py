@@ -1,7 +1,6 @@
 import os
 import re
 import json
-import shutil
 import fileinput
 
 
@@ -12,59 +11,32 @@ def main():
     black_list = ["enkortenlang.tex", "vendelboensfestsang.tex"]
     files = os.listdir(in_path)
     json_res = {}
+
     if not os.path.exists(out_path):
         os.mkdir(out_path)
     else:
         clean_folder(out_path)
+    
     for file in files:
         if file not in black_list:
             file_path = os.path.join(in_path, file)
             file_name = os.path.splitext(os.path.basename(file_path))[0]
             out = os.path.join(out_path, file_name + ".html")
-
-            with open(file_path) as f:
-                s = f.read()
-                s = s.replace("\n", "\n NEWLINE")
-                s = re.sub(r"\\kern(-?)(\d\.\d|\d)+(em|cm|px|pt)", "", s)
-            with open(file_path, "w") as f:
-                f.write(s)
-
-            cmd = f"pandoc -s {file_path} -o {out} --template={template_path} --metadata title='{file_name}'"
+            cmd = f"pandoc -s {file_path} -o {out} --template={template_path} --metadata title='{file_name}' --lua-filter ./util/fix_formatting.lua"
             os.system(cmd)
-
             song_name = get_song_name(file_path)
             if song_name != None:
                 make_song_pug_file(os.path.join(out_path , file_name), file_name)
                 json_res[song_name] = f"./songs/{file_name}.html"
 
-
-
-
-
     with open(os.path.join(os.path.curdir, 'pages', 'songbook', 'songs.json'), encoding="utf-8", mode="w") as f:
-        f.write(json.dumps(json_res, ensure_ascii=False))
-    remove_folder(os.path.join(os.path.curdir, 'sangbog'))
-    for file in os.listdir(out_path):
-        file_path = os.path.join(out_path, file)
-        if file_path.endswith('.html'):
-            with open(file_path) as f:
-                s = f.read()
-                s = s.replace("NEWLINE", "<br/>")
-                s = "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> \n" + s
-            with open(file_path, "w") as f:
-               f.write(s)
+       f.write(json.dumps(json_res, ensure_ascii=False))
 
 
 def clean_folder(path):
     files = os.listdir(path)
     for file in files:
         os.remove(os.path.join(path, file))
-
-
-def remove_folder(path):
-    if os.path.exists(path) and os.path.isdir(path):
-        shutil.rmtree(path)
-
 
 def get_song_name(file_path):
     with open(file_path, encoding="utf-8") as f:
@@ -76,7 +48,7 @@ def get_song_name(file_path):
 
 
 def make_song_pug_file(file_path, file_name):
-    with open(file_path + ".pug", mode = "w") as f:
+    with open(file_path + ".pug", mode = "w", encoding="utf-8") as f:
         pug_text = "extends ../../../components/base_layout \n" \
                    "block content \n" \
                    f"    include {file_name}.html"
