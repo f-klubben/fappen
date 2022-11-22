@@ -192,3 +192,7 @@ dist
 config.dev.ts
 
 .idea/compiler.xml
+
+# Ignore songs (we don't want them in tree)
+pages/songbook/songs
+pages/songbook/songs.json
