@@ -89,7 +89,14 @@ The custom extractor is kept as a dependency in `/extern/ts-extractor-singlefile
 
 ### Setup procedure
 
-First run the `setup-doc-extractor` script from the project root. 
+Before you can build the documentation you need to make sure that you have initiated and updated the git submodules.
+This is done as follows:
+```bash
+git submodules init
+git submodules update
+```
+
+Once the submodule has been initiated then run the `setup-doc-extractor` script from the project root. 
 
 ```bash
 npm run setup-doc-extractor
