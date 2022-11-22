@@ -1,6 +1,5 @@
 ---
-name: Style Guide  
-order: 1
+name: Style Guide
 ---
 
 # Style Guide
