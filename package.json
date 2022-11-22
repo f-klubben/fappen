@@ -2,7 +2,7 @@
   "name": "f-appen",
   "source": "pages/index.pug",
   "scripts": {
-    "start": "parcel",
+    "start": "parcel pages/index.pug pages/songbook/songs/*.pug",
     "build": "parcel build",
     "cors-proxy": "node cors-proxy.js"
   },
