@@ -1,3 +1,8 @@
+[project]
+name = "sts"
+version = "0.0.1"
+dependencies = [ "requests>=2.24.0" ]
+
 [tool.black]
 line-length = 120
 skip-string-normalization = 1
@@ -8,3 +13,9 @@ target-version = ['py37']
 [flake8]
 max-line-length = 120
 
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+exclude = ["*plugins"]
