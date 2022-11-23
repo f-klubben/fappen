@@ -1,6 +1,7 @@
 import config, {is_production} from "../config";
 import * as stregsystem from "./stregsystem";
 import {AccessStatus} from "./stregsystem";
+import * as py_inter from "./util/python_interop";
 
 declare global {
     interface Document {
@@ -61,6 +62,12 @@ void (() => {
     console.log(`Running in ${is_production ? "production" : "development"} mode.`);
     if (!is_production) {
         console.dir(config);
+    }
+
+    // If the cli backend is enabled we initialise the
+    // pyodide python runtime.
+    if (config.features.cli_backend) {
+        void py_inter.init();
     }
 
     /*

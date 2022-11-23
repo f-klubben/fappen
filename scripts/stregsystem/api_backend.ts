@@ -38,3 +38,4 @@ export const post_sale = (buystring: string, room: number, user_id: number): Pro
         .then(res => promise_cond(res.status === 200, res, res))
         .then(res => res.json());
 
+export const init = () => Promise.resolve();

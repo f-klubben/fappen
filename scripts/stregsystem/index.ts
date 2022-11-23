@@ -6,10 +6,8 @@ const {base_api_url, default_room, features} = config;
 import * as cli_backend from './cli_backend';
 import * as api_backend from './api_backend';
 
-// @ts-ignore - the analyzer does not know how to deal with `bundle-text` imports
-import access_failure_msg from 'bundle-text:../components/stregsystem/access_failure.pug';
-// @ts-ignore - see above ^
-import access_no_api from 'bundle-text:../components/stregsystem/access_no_api.pug';
+import access_failure_msg from 'bundle-text:../../components/stregsystem/access_failure.pug';
+import access_no_api from 'bundle-text:../../components/stregsystem/access_no_api.pug';
 import {
     as_tuples,
     disable_loading_indicator,
@@ -99,6 +97,8 @@ export interface Backend {
      * @param user_id
      */
     post_sale(buystring: string, room_id: number, user_id: number);
+
+    init(): Promise<void>;
 }
 
 /**
@@ -598,7 +598,7 @@ class FaStregsystem extends HTMLElement {
             console.log("unable to connect to stregsystem");
             this.classList.add('flex-center', 'center');
             this.innerHTML = access_failure_msg;
-        } else if (status !== AccessStatus.ApiAvailable) {
+        } else if (status !== AccessStatus.ApiAvailable && backend === api_backend) {
             console.log("target stregsystem instance does not have API support");
             this.classList.add('flex-center', 'center');
             this.innerHTML = access_no_api;
@@ -665,12 +665,14 @@ class FaStregsystem extends HTMLElement {
 
 }
 
-export const init = () => {
+export const init = async () => {
     customElements.define("fa-streg-product", FaStregProduct);
     customElements.define("fa-streg-cart", FaStregCart);
     customElements.define("fa-streg-cart-dialog", FaStregCartDialog);
     customElements.define("fa-stregsystem", FaStregsystem);
     customElements.define("fa-profile-widget", FaProfileWidget);
+
+    await backend.init();
 
     events.profile_balance_change.register_handle(({new_balance}) => {
         void AppDatabase.instance.settings
