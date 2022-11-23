@@ -7,6 +7,9 @@ let config = !is_production ?
     : {
         base_api_url: "https://stregsystem.fklub.dk/api",
         default_room: 10,
+        features: {
+            cli_backend: false,
+        }
     };
 
 export default config;

@@ -1,7 +1,10 @@
-import {AppEvent, promise_cond} from "./util/async";
-import config from "../config";
+import {AppEvent} from "../util/async";
+import config from "../../config";
 
-const {base_api_url, default_room} = config;
+const {base_api_url, default_room, features} = config;
+
+import * as cli_backend from './cli_backend';
+import * as api_backend from './api_backend';
 
 // @ts-ignore - the analyzer does not know how to deal with `bundle-text` imports
 import access_failure_msg from 'bundle-text:../components/stregsystem/access_failure.pug';
@@ -13,8 +16,8 @@ import {
     enable_loading_indicator,
     pointer_events,
     reduce_sum, text, void_promise,
-} from "./util/common";
-import {AppDatabase} from "./database";
+} from "../util/common";
+import {AppDatabase} from "../database";
 
 export interface UserProfile {
     username: string,
@@ -24,7 +27,7 @@ export interface UserProfile {
     balance: number,
 }
 
-interface SaleResponse {
+export interface SaleResponse {
     status: string,
     msg: string,
     values: {
@@ -48,7 +51,7 @@ interface SaleResponse {
     }
 }
 
-interface ActiveProductList {
+export interface ActiveProductList {
     [product_id: string]: [
         string, // Product name
         number, // Price
@@ -57,67 +60,51 @@ interface ActiveProductList {
 
 type BalanceChange = { old_balance: number, new_balance: number };
 
-/*
-    API Calls - internal use only
+/**
+ * The backend interface generalises over the basic functionality
+ * that is required for the stregsystem to function.
+ * This is done to allow for interchangeable use of stregsystem API based
+ * implementation and the stregsystem-cli based implementation.
  */
+export interface Backend {
+    /**
+     * Gets the id that corresponds to a given username.
+     * @param username
+     */
+    get_user_id(username: string): Promise<number>;
+
+    /**
+     * Gets the user information associated with the given user id.
+     * @param user_id
+     */
+    get_user_info(user_id: number): Promise<any>;
+
+    /**
+     * Get the current balance of the given user by id.
+     * @param user_id
+     */
+    get_user_balance(user_id: number): Promise<number>;
+
+    /**
+     * Get a list of products that are active within a given room.
+     * @param room_id
+     */
+    get_active_products(room_id: number): Promise<ActiveProductList>;
+
+    /**
+     * Performs a sale request.
+     * @param buystring A string describing the products that are to be purchased,
+     *                  as well as the name of user performing the purchase.
+     * @param room_id
+     * @param user_id
+     */
+    post_sale(buystring: string, room_id: number, user_id: number);
+}
 
 /**
- * Gets the id that corresponds to a given username.
- * @param username
+ * The active backed
  */
-const get_user_id = (username: string): Promise<number> =>
-    fetch(`${base_api_url}/member/get_id?username=${username}`)
-        .then(res => promise_cond(res.status === 200, res, "Invalid status code"))
-        .then(res => res.json())
-        .then(value => value['member_id']);
-
-/**
- * Gets the user information associated with the given user id.
- * @param user_id
- */
-const get_user_info = (user_id: number): Promise<any> =>
-    fetch(`${base_api_url}/member?member_id=${user_id}`)
-        .then(res => promise_cond(res.status === 200, res, res))
-        .then(res => res.json());
-
-/**
- * Get the current balance of the given user by id.
- * @param user_id
- */
-const get_user_balance = (user_id: number): Promise<number> =>
-    fetch(`${base_api_url}/member/balance?member_id=${user_id}`)
-        .then(res => promise_cond(res.status === 200, res, res))
-        .then(res => res.json())
-        .then(value => value['balance']);
-
-/**
- * Get a list of products that are active within a given room.
- * @param room_id
- */
-const get_active_products = (room_id: number): Promise<ActiveProductList> =>
-    fetch(`${base_api_url}/products/active_products?room_id=${room_id}`)
-        .then(res => promise_cond(res.status === 200, res, res))
-        .then(res => res.json());
-
-/**
- * Performs a sale request.
- * @param buystring A string describing the products that are to be purchased,
- *                  as well as the name of user performing the purchase.
- * @param room
- * @param user_id
- */
-const post_sale = (buystring: string, room: number, user_id: number): Promise<SaleResponse> =>
-    fetch(`${base_api_url}/sale`, {
-        method: 'POST',
-        cache: "no-cache",
-        headers: {
-            "Content-Type": 'application/json',
-        },
-        body: JSON.stringify({buystring, room, member_id: `${user_id}`}),
-    })
-        .then(res => promise_cond(res.status === 200, res, res))
-        .then(res => res.json());
-
+const backend: Backend = features.cli_backend ? cli_backend : api_backend;
 
 /*
     Public interface
@@ -150,8 +137,8 @@ export const check_access = (): Promise<AccessStatus> =>
  * @param username
  */
 export const fetch_profile = async (username: string): Promise<UserProfile> => {
-    const user_id = await get_user_id(username);
-    const {name, active, balance} = await get_user_info(user_id);
+    const user_id = await backend.get_user_id(username);
+    const {name, active, balance} = await backend.get_user_info(user_id);
 
     return {
         username, id: user_id,
@@ -234,8 +221,8 @@ class FaStregProduct extends HTMLElement {
 
             enable_loading_indicator(true);
             try {
-                await post_sale(`${profile.username} ${this.product_id}`, default_room, profile.id);
-                const new_balance = await get_user_balance(profile.id);
+                await backend.post_sale(`${profile.username} ${this.product_id}`, default_room, profile.id);
+                const new_balance = await backend.get_user_balance(profile.id);
                 events.profile_balance_change.dispatch({old_balance: profile.balance, new_balance});
             } catch (err) {
                 alert("Purchase failed.");
@@ -319,8 +306,8 @@ class FaStregCart extends HTMLElement {
         const buy_string = this.get_buy_string(profile.username);
         enable_loading_indicator(true);
         try {
-            await post_sale(buy_string, default_room, profile.id);
-            const new_balance = await get_user_balance(profile.id);
+            await backend.post_sale(buy_string, default_room, profile.id);
+            const new_balance = await backend.get_user_balance(profile.id);
             events.profile_balance_change.dispatch({old_balance: profile.balance, new_balance});
             this.contents = {};
             this.update();
@@ -624,7 +611,7 @@ class FaStregsystem extends HTMLElement {
         const product_container = document.createElement('div');
         product_container.classList.add("border-outer");
 
-        this.catalogue = await get_active_products(default_room);
+        this.catalogue = await backend.get_active_products(default_room);
         const product_elements = Object.keys(this.catalogue)
             .map(key => new FaStregProduct(this.cart, parseInt(key), ...this.catalogue[key]));
 
