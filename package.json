@@ -1,17 +1,29 @@
 {
-  "name": "f-appen",
+  "name": "fappen",
+  "version": "1.0.0-α1",
   "source": "pages/index.pug",
   "scripts": {
-    "start": "parcel pages/index.pug pages/songbook/songs/*.pug",
-    "build": "parcel build",
-    "cors-proxy": "node cors-proxy.js"
+    "start": "parcel pages/index.pug pages/songbook/songs/*.pug --dist-dir build/parcel-dist",
+    "build": "parcel build --dist-dir build/parcel-dist",
+    "cors-proxy": "node util/cors-proxy.js",
+    "build-docs": "mkdir build && node util/build_docs.mjs",
+    "reload-doc-extractor": "rm -rf node_modules/@fappen/extractor/dist && cp -r extern/ts-extractor-singlefile-modules/dist node_modules/@fappen/extractor/dist",
+    "setup-doc-extractor": "cd extern/ts-extractor-singlefile-modules && npm i && npm run prepublishOnly"
+  },
+  "repository": {
+    "url": "https://github.com/f-klubben/fappen.git",
+    "type": "git"
   },
   "devDependencies": {
+    "@fappen/extractor": "file:./extern/ts-extractor-singlefile-modules",
+    "@knodes/typedoc-plugin-pages": "^0.23.1",
     "@parcel/packager-raw-url": "^2.7.0",
     "@parcel/transformer-inline-string": "^2.7.0",
     "@parcel/transformer-pug": "^2.7.0",
     "@parcel/transformer-sass": "^2.7.0",
     "@parcel/transformer-webmanifest": "^2.7.0",
+    "@ts-docs/default-docs-structure": "^0.4.4",
+    "@ts-docs/ts-docs": "^0.4.4",
     "@types/node": "^18.11.3",
     "@types/pug": "^2.0.6",
     "@typescript-eslint/eslint-plugin": "^5.41.0",

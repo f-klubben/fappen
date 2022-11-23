@@ -1,6 +1,11 @@
 {
-  "include": ["scripts/**/*"],
-  "exclude": ["node_modules"],
+  "include": [
+    "scripts/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "scripts/service-worker.ts"
+  ],
   "compilerOptions": {
     "moduleResolution": "Node",
     "target": "es2022",
@@ -12,5 +17,15 @@
       "es2015.promise",
       "ESNext"
     ]
+  },
+  "tsdocsOptions": {
+    "name": "Fappen",
+    "includeVersion": "Beta 1",
+    "entryPoints": [
+      "scripts/index"
+    ],
+    "exclude": "scripts/service-worker.ts",
+    "out": "build/docs",
+    "customPages": "docs"
   }
 }
