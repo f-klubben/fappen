@@ -2,6 +2,7 @@
   "include": ["scripts/**/*"],
   "exclude": ["node_modules"],
   "compilerOptions": {
+    "experimentalDecorators": true,
     "moduleResolution": "Node",
     "target": "es2022",
     "module": "es2022",

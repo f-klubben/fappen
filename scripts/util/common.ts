@@ -4,6 +4,30 @@
  */
 
 /**
+ * Types that can be cloned using `structuredClone()`.
+ *
+ * This type excludes excludes Wev/API specific types. Not particular reason for this.
+ * It was simply a pain to add them all. Feel free to add them as needed.
+ *
+ * Refer to [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm)
+ * for a complete overview.
+ *
+ * |> Beware that this custom Error types are not allowed in `structuredClone()`
+ * |> even if the type says it allows any Error type.
+ */
+export type StructuredClone =
+    Array<StructuredClone> | ArrayBuffer | Boolean | DataView | Date | Error | Map<StructuredClone, StructuredClone>
+    | number | boolean | string | undefined | null | BigInt | RegExp | String | { [key: string|number]: StructuredClone }
+    | Int8Array | Int16Array | Int32Array | Float32Array | Float64Array
+    | Uint8Array | Uint16Array | Uint32Array | BigInt64Array | BigUint64Array;
+
+/**
+ * Types that can be sent to a web worker.
+ * These are the same as [[StructuredClone]]
+ */
+export type Send = StructuredClone;
+
+/**
  * Type representing a predicate function taking
  * a single argument and returning a boolean.
  */
@@ -18,6 +42,12 @@ export type MapFn<A, B> = (a: A) => B;
  * Type representing a function that takes no input and returns nothing.
  */
 export type Action = () => void;
+
+/**
+ * A function that returns the value given to it.
+ * @param v
+ */
+export const identity = <T>(v: T): T => v;
 
 /**
  * Wraps a given value in a function.
