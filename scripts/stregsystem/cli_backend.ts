@@ -39,7 +39,7 @@ export const get_user_balance = (user_id: number): Promise<number> =>
         user_mgr.user = await user_from_id(${user_id})
     else:
         user_mgr.update_balance(req_handler)
-    user_mgr.get_balance()
+    user_mgr.get_balance() * 100
     `);
 
 export const get_active_products = async (room_id: number): Promise<ActiveProductList> => {
@@ -50,7 +50,7 @@ export const get_active_products = async (room_id: number): Promise<ActiveProduc
 
     const products = {};
     for (const {id, name, price} of py_products) {
-        products[id] = [name, price];
+        products[id] = [name, price * 100];
     }
 
     return products;
