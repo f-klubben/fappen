@@ -16,6 +16,7 @@ let pyodide = loadPyodide()
     .then(async pyodide => {
         await pyodide.loadPackage('micropip');
         await pyodide.runPython('import micropip')
+        await pyodide.registerJsModule('worker_xhr', {xhr_call});
         // Signal that the worker is ready
         postMessage('ready');
         return pyodide;
@@ -30,8 +31,9 @@ self.onmessage = async (event) => {
         const response = {id, type: 'response'};
         const result = await message_handlers[type](py, event.data, response);
 
-        if (result != dont_respond)
+        if (result != dont_respond) {
             postMessage(response);
+        }
     } catch (error) {
         console.error(`[python-worker] <${type}> error encountered:`);
         console.error(error);
@@ -43,6 +45,39 @@ self.onmessage = async (event) => {
 let call_id = 0;
 
 const proxy_call_resolvers = {};
+
+function xhr_call(method, url, params) {
+    let xhr = new XMLHttpRequest();
+    xhr.withCredentials = true;
+
+    const query = [];
+    if (params instanceof Map) {
+        for (const [key, value] of params) {
+            query.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+        }
+    }
+
+    const queryString = query.join('&');
+    if (method.toLowerCase() === "get") {
+        url = `${url}?${queryString}`;
+    }
+
+    let body;
+    xhr.open(method, url, false);
+
+    if (method.toLowerCase() === "post") {
+        xhr.setRequestHeader('Content-Type', "application/x-www-form-urlencoded");
+        body = queryString;
+    }
+
+    xhr.send(body);
+    return {
+        status_code: xhr.status,
+        headers: xhr.getAllResponseHeaders(),
+        body: xhr.response,
+        text: xhr.responseText,
+    }
+}
 
 /**
  * Requests the main thread to call a function from a python module.
@@ -69,6 +104,8 @@ const message_handlers: { [key: string]: (py: PyodideInterface, data: any, outpu
         'run': async (py, {payload}, out) => {
             await py.loadPackagesFromImports(payload);
             out.results = await py.runPythonAsync(payload);
+            if (py.isPyProxy(out.results))
+                out.results = out.results.toJs({create_pyproxies: false, dict_converter: Object.fromEntries});
         },
 
         'install': async (py, {payload}, out) => {

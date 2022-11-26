@@ -3,8 +3,8 @@ const readFileSync = require("fs").readFileSync;
 module.exports = {
     locals: {
         app_name: "F-Appen",
-        manifest: JSON.parse(readFileSync("./manifest.json", "utf-8")),
-        songs: JSON.parse(readFileSync("./pages/songbook/songs.json", "utf-8")),
+        manifest: require('./manifest.json'),
+        songs: require("./pages/songbook/songs.json"),
         navigation: {
             Frontpage: "/pages/index.pug",
             Stregsystem: "/pages/stregsystem.pug",

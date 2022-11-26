@@ -61,6 +61,7 @@ const msg_handler = async (event) => {
 
     // Handles python -> js calls
     if (type === 'call') {
+        console.log('call');
         const {module, method, args} = event.data
         const response = {type: 'return', id, success: false, value: null};
 
@@ -73,14 +74,15 @@ const msg_handler = async (event) => {
             response.value = new Error(`method ${method} not found in ${module}`);
         } else {
             try {
-                response.value = await mod[__py_mod_methods][method](args);
+                const [fn, serializer] = mod[__py_mod_methods][method];
+                response.value = await serializer(fn(args));
                 response.success = true;
             } catch (e) {
                 response.value = e;
             }
         }
 
-        postMessage(response);
+        worker.postMessage(response);
         return;
     }
 
@@ -122,7 +124,8 @@ const send_command = (type: CommandType, params: any): Promise<any> => {
  * @param code
  */
 export const run = (code: string): Promise<any> =>
-    send_command('run', {payload: code});
+    send_command('run', {payload: code})
+        .then(o => o.results);
 
 /**
  * Install a python package into the runtime.
@@ -156,26 +159,6 @@ export const install_js_module = async (module: PyModule) => {
 
     module[__py_mod_reg_status] = res.status;
 };
-
-
-/**
- * Patches http related libraries using pyodide-http.
- * This allows for use of the urllib and request packages.
- */
-export const patch_http = async () => {
-    ensure_init(patch_http);
-    if (flags['http'] != null)
-        return;
-    flags['http'] = true;
-
-    await install('requests')
-    await install('pyodide-http')
-
-    await run(`
-    import pyodide_http
-    pyodide_http.patch_all()
-    `);
-}
 
 /*
     Symbols used to store python module metadata
@@ -232,7 +215,7 @@ interface PyMethodOptions {
 const method_decorator =
     (options: PyMethodOptions = {}) => (target: Function, propertyKey: string, _: PropertyDescriptor) => {
         // If the target is not a function that means the target method
-        // is not static. Since only support modules all python functions
+        // is not static. Since only modules are supported all python functions
         // must be static.
         if (!(target instanceof Function))
             throw new Error("Cannot use @pyFn on non static class methods");

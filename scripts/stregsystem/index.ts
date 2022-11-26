@@ -28,7 +28,7 @@ export interface UserProfile {
 export interface SaleResponse {
     status: string,
     msg: string,
-    values: {
+    values?: {
         order: {
             room: number,
             member: number, // string?
@@ -333,6 +333,8 @@ class FaStregCart extends HTMLElement {
         this.last_update = Date.now();
         this.product_counter.textContent = this.compute_product_count().toString();
         this.total_display.innerText = format_stregdollar(this.compute_total());
+        document.querySelectorAll('.dec')
+            .forEach((e: HTMLElement) => e.style.display = 'none');
     }
 
     /**

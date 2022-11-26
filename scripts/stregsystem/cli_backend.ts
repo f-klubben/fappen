@@ -12,26 +12,75 @@ export const get_user_id = (username: string): Promise<number> =>
     user_mgr.get_user_id()
     `);
 
+const reg_username = /<td>Brugernavn<\/td>\s*<td>(.+)<\/td>/;
+const reg_firstname = /<td>Fornavn\(e\)<\/td>\s*<td>(.+)<\/td>/;
+const reg_lastname = /<td>Efternavn<\/td>\s*<td>(.+)<\/td>/;
+const reg_balance = /Du har ([0-9.]+) kroner til gode!/;
+// sts-cli does not implement a way to get a user from its id
 export const get_user_info = (user_id: number): Promise<any> =>
-    Promise.resolve();
+    fetch(`${config.base_api_url}/../${config.default_room}/user/${user_id}`)
+        .if(res => res.status === 200, async res => {
+            const response_text = await res.text();
+            return {
+                username: reg_username.exec(response_text)[1],
+                name: [
+                    reg_firstname.exec(response_text)[1],
+                    reg_lastname.exec(response_text)[1],
+                ].join(' '),
+                balance: parseFloat(reg_balance.exec(response_text)[1]),
+                active: true,
+            };
+        })
+        .else_then_promise(() => Promise.reject("Unable to get user info."))
 
 export const get_user_balance = (user_id: number): Promise<number> =>
-    Promise.resolve(1);
+    py.run(`
+    if user_mgr.user.user_id != ${user_id}:
+        user_mgr.user = await user_from_id(${user_id})
+    else:
+        user_mgr.update_balance(req_handler)
+    user_mgr.get_balance()
+    `);
 
-export const get_active_products = (room_id: number): Promise<ActiveProductList> =>
-    Promise.resolve({});
+export const get_active_products = async (room_id: number): Promise<ActiveProductList> => {
+    const py_products = await py.run(`
+    sts.update_products()
+    [p.__dict__ for (_, p) in sts.products.items()]
+    `);
 
-export const post_sale = (buystring: string, room: number, user_id: number): Promise<SaleResponse> =>
-    Promise.resolve(<SaleResponse>{});
+    const products = {};
+    for (const {id, name, price} of py_products) {
+        products[id] = [name, price];
+    }
 
-@py.pyModule("cookie_helper")
-class CookieHelper {
+    return products;
+};
+
+export const post_sale = async (buystring: string, _: number, user_id: number): Promise<SaleResponse> => {
+    const products = Object.fromEntries(
+        buystring
+            .split(' ')
+            .slice(1)
+            .map(x => x.split(':'))
+            .map(([a, b]) => [a, parseInt(b) || 1])
+    );
+
+    const [status, msg] = await py.run(`
+    if user_mgr.user.user_id != ${user_id}:
+        user_mgr.user = await user_from_id(${user_id})
+    to_js(sts.make_purchase(${JSON.stringify(products)}))
+    `);
+
+    return {status, msg};
+}
+
+@py.pyModule("cli_helper")
+class CliHelper {
 
     @py.pyFn()
-    static set_cookies(cookies: object) {
-        for (let key in cookies) {
-            document.cookie = `${key}=${cookies[key]};domain=localhost;samesite=none;secure`;
-        }
+    static async user_from_id(id: number) {
+        const {username, balance} = await get_user_info(id);
+        return {username, balance, user_id: id};
     }
 
 }
@@ -39,8 +88,8 @@ class CookieHelper {
 export const init = async () => {
     await py.init();
 
-    await py.patch_http();
-    await py.install_js_module(<py.PyModule & typeof CookieHelper> CookieHelper);
+    await py.install('requests');
+    await py.install_js_module(<py.PyModule & typeof CliHelper> CliHelper);
 
     await py.run('force_disable_main = True')
     await py.run(sts_py);
@@ -49,27 +98,20 @@ export const init = async () => {
     import argparse
     
     CONSTANTS['url'] = '${config.base_api_url.substring(0, config.base_api_url.length-4)}'
-    CONSTANTS['room'] = ${config.default_room}
+    CONSTANTS['room'] = '${config.default_room}'
     
-    # Inject cookie handler
-    # original_set_cookies = Stregsystem.RequestHandler.set_cookies
-    # def set_cookies(self):
-    #    import cookie_helper
-    #    original_set_cookies(self)
-    #    cookie_helper.set_cookies(self.cookies)
+    from cli_helper import user_from_id
+    from worker_xhr import xhr_call
+    from pyodide.ffi import to_js
     
-    # Stregsystem.RequestHandler.set_cookies = set_cookies
-    
-    from js import XMLHttpRequest
-    xhr_new = XMLHttpRequest.new
-    def new_request():
-        req = xhr_new();
-        print(req)
-        print(req.withCredentials)
-        req.withCredentials = True
-        return req
+    def get(self, url, params):
+        return xhr_call("GET", url, to_js(params))
         
-    XMLHttpRequest.new = new_request()
+    def post(self, url, data):
+        return xhr_call("POST", url, to_js(data))
+    
+    requests.Session.get = get
+    requests.Session.post = post
     
     # Resume normal startup
     
@@ -83,9 +125,4 @@ export const init = async () => {
     req_handler = sts._request_handler
     user_mgr = sts._user_manager
     `);
-
-    // TODO remove this (its for testing)
-    console.log(`get user`)
-    const user_id = await get_user_id('tester');
-    console.log(user_id);
 };

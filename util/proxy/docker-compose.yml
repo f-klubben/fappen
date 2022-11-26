@@ -1,0 +1,28 @@
+version: '3.4'
+
+services:
+  nginx:
+    build: 'traefik'
+    ports:
+      - "8080:443"
+    volumes:
+      - ./traefik/dyn.toml:/etc/traefik/dyn.toml
+      - ./traefik/traefik.toml:/etc/traefik/traefik.toml
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  stregsystem:
+      build: './stregsystem'
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.stregsystem.tls=true
+        - traefik.http.routers.stregsystem.entrypoints=websecure
+        - traefik.http.routers.stregsystem.rule=Host(`localhost`)
+        - traefik.http.routers.stregsystem.service=stregsystem-service
+        - traefik.http.routers.stregsystem.middlewares=stregsystem
+        - traefik.http.services.stregsystem-service.loadbalancer.server.port=8000
+        - traefik.http.middlewares.stregsystem.headers.accessControlAllowMethods=GET,OPTIONS,PUT
+        - traefik.http.middlewares.stregsystem.headers.accessControlAllowOriginList=http://localhost:1234
+        - traefik.http.middlewares.stregsystem.headers.accessControlMaxAge=100
+        - traefik.http.middlewares.stregsystem.headers.accessControlAllowHeaders=*
+        - traefik.http.middlewares.stregsystem.headers.accessControlAllowCredentials=true
+        - traefik.http.middlewares.stregsystem.headers.addVaryHeader=true

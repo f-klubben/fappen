@@ -100,6 +100,11 @@ export class AsyncCondition<A> {
             .then(cond => cond.else_use(fallback).resolve());
     }
 
+    else_then_promise(f: () => A): Promise<A> {
+        return this.inner
+            .then(cond => cond.else_map(f).resolve())
+    }
+
 }
 
 /**
