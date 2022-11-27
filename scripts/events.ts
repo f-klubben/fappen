@@ -7,15 +7,48 @@ import access_failure_msg from 'bundle-text:../components/events/access_failure.
 const {events_api_url, events_api_key, events_id, events_base_url} = config;
 
 /**
- * See https://developers.google.com/calendar/api/v3/reference/events/list
+ *  An interface for the result of an event list api call.  
+ *  Some irrelevant parameters have been ignored.  
+ *  See https://developers.google.com/calendar/api/v3/reference/events/list for more information
  */
-interface EventListRequestOptions {
-    maxResults: number
-    timeMax: string //(yyyy-mm-dd)T(hh:mm:ss)Z Without the braces
-    timeMin: string //(yyyy-mm-dd)T(hh:mm:ss)Z Without the braces
-    orderBy: string // Either "startTime" or "updated"
+
+interface EventListRequest {
+    king: string
+    etag: string
+    summary: string
+    timeZone: string
+    accesRole: string
+    items: Event[]
+    updated: Date
+    nextPageToken: string
+    nextSyncToken: string
 }
 
+/**
+ *  An interface for the optional parameters for an event list api call.  
+ *  Some irrelevant parameters have been ignored.  
+ *  See https://developers.google.com/calendar/api/v3/reference/events/list for more information
+ */
+interface EventListRequestOptions {
+    key: string
+    singleEvents: boolean,
+    iCalUID?: string
+    maxAttendees?: number
+    maxResults?: number
+    orderBy?: string // Either "startTime" or "updated"
+    pageToken?: string
+    q?: string
+    syncToken?: string
+    timeMax?: string //(yyyy-mm-dd)T(hh:mm:ss)Z Without the braces
+    timeMin?: string //(yyyy-mm-dd)T(hh:mm:ss)Z Without the braces
+    timeZone?: string
+    updatedMin?: string //(yyyy-mm-dd)T(hh:mm:ss)Z Without the braces
+}
+
+/**
+ *  An interface for a single event in the result of an event list api call.  
+ *  See https://developers.google.com/calendar/api/v3/reference/events/list for more information
+ */
 interface Event {
     id: string
     status: string
@@ -56,6 +89,11 @@ function get_dates_from_event(event: Event): EventDates {
     return {start, end, created: event.created, updated: event.updated}
 }
 
+
+/**
+ * Custom HTML element class for element `<fa-events>`.  
+ * Represents a set of upcoming and past events
+ */
 class FaEvents extends HTMLElement {
     constructor() {
         super();
@@ -63,27 +101,27 @@ class FaEvents extends HTMLElement {
         minTime.setMonth(minTime.getMonth() - 4)
         this.innerHTML = "";
         this.load({
-            maxResults: 0, 
+            key: events_api_key,
+            singleEvents: true,
             orderBy: "starttime",
-            timeMax: "",
             timeMin: minTime.toISOString()
         })
     }
 
     load(options: EventListRequestOptions) {
-        let url = `${events_api_url}${events_id}/events?key=${events_api_key}&singleEvents=true`
-        if (options.maxResults !== 0) 
-            url += `&maxResults=${options.maxResults}`;
-        if (options.timeMax !== "")
-            url += `&timeMax=${options.timeMax}`;
-        if (options.timeMin !== "")
-            url += `&timeMin=${options.timeMin}`;
-        if (options.orderBy !== "")
-            url += `&orderBy=${options.orderBy}`;
+        let url = `${events_api_url}${events_id}/events`
+        
+        let params = Object.keys(options).map(key => {
+            if (options[key] !== undefined) 
+                return key + '=' + options[key]
+        }).join('&')
+
+        url += `?${params}`
+        
         fetch(url)
             .then(res => {
                 if (res.status === 200)
-                    res.json().then(res => this.display(res));
+                    res.json().then(res => this.render_events(res));
                 else
                     this.access_failure();
             }).catch(_ => {
@@ -91,8 +129,8 @@ class FaEvents extends HTMLElement {
             })
     }
 
-    display(res) {
-        let events: Event[] = res.items.reverse();
+    render_events(eventList: EventListRequest) {
+        let events = eventList.items.reverse();
         let current_date = new Date();
         disable_loading_indicator();
 
@@ -118,14 +156,17 @@ class FaEvents extends HTMLElement {
             else 
                 past.appendChild(element);
         }
+
         let header = document.createElement("h2");
         header.innerText = "Upcoming";
         this.appendChild(header);
         this.appendChild(upcoming);
+
         header = document.createElement("h2");
         header.innerText = "Past";
         this.appendChild(header);
         this.appendChild(past);
+
         let link = document.createElement("a");
         link.href = `${events_base_url}${events_id}`;
         link.innerText = "Add to calendar"
@@ -137,10 +178,11 @@ class FaEvents extends HTMLElement {
         this.innerHTML = access_failure_msg;
     }
 
-
-
 }
 
+/**
+ * Initializes the necessary elements for handling and rendering events.
+ */
 export const init = () => {
     customElements.define("fa-events", FaEvents);
 };
