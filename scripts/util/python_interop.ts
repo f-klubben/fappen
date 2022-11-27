@@ -61,7 +61,6 @@ const msg_handler = async (event) => {
 
     // Handles python -> js calls
     if (type === 'call') {
-        console.log('call');
         const {module, method, args} = event.data
         const response = {type: 'return', id, success: false, value: null};
 
