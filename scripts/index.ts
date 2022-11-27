@@ -1,5 +1,6 @@
 import config, {is_production} from "../config";
 import * as stregsystem from "./stregsystem";
+import * as events from "./events";
 import {AccessStatus} from "./stregsystem";
 import * as py_inter from "./util/python_interop";
 
@@ -98,4 +99,5 @@ void (() => {
      */
 
     stregsystem.init();
+    events.init();
 })();

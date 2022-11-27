@@ -4,11 +4,11 @@ module.exports = {
     locals: {
         app_name: "F-Appen",
         manifest: require('./manifest.json'),
-        songs: require("./pages/songbook/songs.json"),
         navigation: {
             Frontpage: "/pages/index.pug",
             Stregsystem: "/pages/stregsystem.pug",
             Songbook: "/pages/songbook/index.pug",
+            Events: "/pages/events.pug",
             Links: "/pages/links.pug",
             Offline: "/pages/offline.pug"
         },
