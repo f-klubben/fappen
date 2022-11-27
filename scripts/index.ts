@@ -1,5 +1,6 @@
 import config, {is_production} from "../config";
 import * as stregsystem from "./stregsystem";
+import * as events from "./events";
 import {AccessStatus} from "./stregsystem";
 
 declare global {
@@ -91,4 +92,5 @@ void (() => {
      */
 
     stregsystem.init();
+    events.init();
 })();
