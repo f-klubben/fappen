@@ -3,6 +3,18 @@ import * as py from "../util/python_interop";
 import sts_py from 'bundle-text:sts.py';
 import config from "../../config";
 
+const html_decoder = document.createElement('span');
+
+/**
+ * Decodes an HTML escaped string by inserting it into an HTML element
+ * and reading back its inner text.
+ * @param src
+ */
+const decode_html_escapes = (src: string): string => {
+    html_decoder.innerHTML = src;
+    return html_decoder.innerText;
+}
+
 export const get_user_id = (username: string): Promise<number> =>
     py.run(`
     if user_mgr.user.username != '${username}':
@@ -22,10 +34,10 @@ export const get_user_info = (user_id: number): Promise<any> =>
         .if(res => res.status === 200, async res => {
             const response_text = await res.text();
             return {
-                username: reg_username.exec(response_text)[1],
+                username: decode_html_escapes(reg_username.exec(response_text)[1]),
                 name: [
-                    reg_firstname.exec(response_text)[1],
-                    reg_lastname.exec(response_text)[1],
+                    decode_html_escapes(reg_firstname.exec(response_text)[1]),
+                    decode_html_escapes(reg_lastname.exec(response_text)[1]),
                 ].join(' '),
                 balance: parseFloat(reg_balance.exec(response_text)[1]),
                 active: true,

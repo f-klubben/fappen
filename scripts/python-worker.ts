@@ -8,7 +8,7 @@ declare const self: ServiceWorkerGlobalScope;
 
 declare function loadPyodide(): Promise<PyodideInterface>;
 
-importScripts("https://cdn.jsdelivr.net/pyodide/dev/full/pyodide.js");
+importScripts("https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js");
 
 const dont_respond = Symbol();
 
