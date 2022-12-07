@@ -1,6 +1,7 @@
 import {ActiveProductList, SaleResponse} from "./index";
 import * as py from "../util/python_interop";
 import sts_py from 'bundle-text:sts.py';
+import compat_py from 'bundle-text:./cli_compat.py';
 import config from "../../config";
 
 const html_decoder = document.createElement('span');
@@ -15,14 +16,16 @@ const decode_html_escapes = (src: string): string => {
     return html_decoder.innerText;
 }
 
-export const get_user_id = (username: string): Promise<number> =>
-    py.run(`
-    if user_mgr.user.username != '${username}':
-        user_mgr.set_user('${username}', req_handler)
+export const get_user_id = (username: string): Promise<number> => {
+    username = JSON.stringify(username);
+    return py.run(`
+    if user_mgr.user.username != ${username}:
+        user_mgr.set_user(${username}, req_handler)
     else:
         user_mgr.update_user(req_handler)
     user_mgr.get_user_id()
     `);
+};
 
 const reg_username = /<td>Brugernavn<\/td>\s*<td>(.+)<\/td>/;
 const reg_firstname = /<td>Fornavn\(e\)<\/td>\s*<td>(.+)<\/td>/;
@@ -57,7 +60,7 @@ export const get_user_balance = (user_id: number): Promise<number> =>
 export const get_active_products = async (room_id: number): Promise<ActiveProductList> => {
     const py_products = await py.run(`
     sts.update_products()
-    [p.__dict__ for (_, p) in sts.products.items()]
+    [clean_product(p.__dict__) for (_, p) in sts.products.items()]
     `);
 
     const products = {};
@@ -103,38 +106,17 @@ export const init = async () => {
     await py.install('requests');
     await py.install_js_module(<py.PyModule & typeof CliHelper> CliHelper);
 
-    await py.run('force_disable_main = True')
+    await py.run(`
+    force_disable_main = True
+    _print = print # sts replaces print so we need keep a reference for later
+    `)
     await py.run(sts_py);
+    await py.run(compat_py);
 
     await py.run(`
-    import argparse
-    
-    CONSTANTS['url'] = '${config.base_api_url.substring(0, config.base_api_url.length-4)}'
-    CONSTANTS['room'] = '${config.default_room}'
-    
-    from cli_helper import user_from_id
-    from worker_xhr import xhr_call
-    from pyodide.ffi import to_js
-    
-    def get(self, url, params):
-        return xhr_call("GET", url, to_js(params))
-        
-    def post(self, url, data):
-        return xhr_call("POST", url, to_js(data))
-    
-    requests.Session.get = get
-    requests.Session.post = post
-    
-    # Resume normal startup
-    
-    config = Configuration()
-    args = [ '-z' ] # Flag for disabling plugin loader
-    _parser = argparse.ArgumentParser(add_help=False)
-    _args = pre_parse(args, _parser)
-    
-    sts = Stregsystem(config, _args, args)
-    
-    req_handler = sts._request_handler
-    user_mgr = sts._user_manager
+    startup(
+        '${config.base_api_url.substring(0, config.base_api_url.length-4)}',
+        '${config.default_room}',
+        )
     `);
 };

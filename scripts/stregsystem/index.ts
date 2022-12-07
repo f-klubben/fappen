@@ -120,7 +120,7 @@ export enum AccessStatus {
  * Check whether the stregsystem can be reached.
  */
 export const check_access = (): Promise<AccessStatus> =>
-    fetch(`${base_api_url}/..`)
+    fetch(`${base_api_url}/../${default_room}`)
         .if(res => res.status === 200, AccessStatus.StregsystemAvailable)
         .then_if_async(state => fetch(`${base_api_url}/products/active_products?room_id=${default_room}`)
             .if(res => res.status === 200, AccessStatus.ApiAvailable)
