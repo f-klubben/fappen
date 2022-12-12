@@ -541,12 +541,20 @@ class FaProfileWidget extends HTMLElement {
             document.createElement('br'),
             this.balance,
         );
+        pointer_events(this, {
+            hold: [800, this.logout.bind(this)],
+        });
     }
 
     on_profile_load(profile: UserProfile) {
         this.profile = profile;
         this.username.textContent = profile.username;
         this.balance.textContent = format_stregdollar(profile.balance);
+    }
+
+    async logout() {
+        await AppDatabase.instance.settings.delete("profile.active");
+        window.location.reload()
     }
 
     on_balance_change(change: BalanceChange) {
