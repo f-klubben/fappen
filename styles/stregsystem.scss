@@ -16,16 +16,20 @@ fa-stregsystem {
     flex-direction: column;
     margin-top: 10px;
   }
-
 }
 
 fa-streg-cart {
   height: 55px;
   border-top: solid var(--fg1) 1px;
+
   margin-top: auto;
 
   > :nth-child(2) {
     float: right;
+  }
+  span {
+    color: blue;
+    text-decoration: underline;
   }
 }
 
