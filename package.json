@@ -3,7 +3,7 @@
   "source": "pages/index.pug",
   "scripts": {
     "start": "parcel pages/index.pug pages/songbook/songs/*.pug",
-    "build": "parcel build",
+    "build": "parcel build pages/index.pug pages/songbook/songs/*.pug" ,
     "cors-proxy": "node cors-proxy.js"
   },
   "devDependencies": {

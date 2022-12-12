@@ -120,7 +120,7 @@ export enum AccessStatus {
  * Check whether the stregsystem can be reached.
  */
 export const check_access = (): Promise<AccessStatus> =>
-    fetch(`${base_api_url}/..`)
+    fetch(`${base_api_url}/../${default_room}`)
         .if(res => res.status === 200, AccessStatus.StregsystemAvailable)
         .then_if_async(state => fetch(`${base_api_url}/products/active_products?room_id=${default_room}`)
             .if(res => res.status === 200, AccessStatus.ApiAvailable)
@@ -311,6 +311,8 @@ class FaStregCart extends HTMLElement {
             events.profile_balance_change.dispatch({old_balance: profile.balance, new_balance});
             this.contents = {};
             this.update();
+            this.owner.querySelectorAll('.dec')
+                .forEach((e: HTMLElement) => e.style.display = 'none');
         } catch (e) {
             alert("Purchase failed.");
             console.error(e);
@@ -333,8 +335,10 @@ class FaStregCart extends HTMLElement {
         this.last_update = Date.now();
         this.product_counter.textContent = this.compute_product_count().toString();
         this.total_display.innerText = format_stregdollar(this.compute_total());
-        document.querySelectorAll('.dec')
-            .forEach((e: HTMLElement) => e.style.display = 'none');
+        this.owner.querySelectorAll('fa-streg-product')
+            .forEach((e: FaStregProduct) => {
+
+            });
     }
 
     /**

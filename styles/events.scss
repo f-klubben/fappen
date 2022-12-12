@@ -1,0 +1,9 @@
+@import "./base.scss";
+
+fa-events {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    width: fit-content;
+    max-width: 90%;
+}
