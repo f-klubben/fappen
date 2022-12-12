@@ -15,6 +15,8 @@
 
   /* actual root styles */
   background-color: var(--bg1);
+  webkit-user-select: none; /* Safari */
+  user-select: none; /* Standard syntax */
 }
 
 body {
