@@ -3,13 +3,14 @@ FROM fedora:latest
 ARG workdir=/home/stregsystemet
 ARG author="FRITFIT"
 ARG source_repo="https://github.com/f-klubben/stregsystemet.git"
+ARG source_branch="next"
 
 RUN dnf install python3-pip gcc python3-devel python3.7 git -y
 RUN dnf clean all
 
 RUN mkdir $workdir
 WORKDIR $workdir
-RUN git clone $source_repo .
+RUN git clone -b $source_branch $source_repo .
 
 LABEL org.opencontainers.image.authors=$author
 
