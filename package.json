@@ -31,14 +31,17 @@
     "punycode": "^1.4.1",
     "querystring-es3": "^0.2.1",
     "typescript": "^4.8.4",
-    "url": "^0.11.0"
+    "url": "^0.11.0",
+    "yargs": "^17.6.2",
+    "zx": "^7.1.1"
   },
   "dependencies": {
     "dexie": "^3.2.2",
     "jstransformer-markdown-it": "^3.0.0",
     "markdown-it-container": "^3.0.0",
     "pug": "^3.0.2",
-    "pyodide": "^0.21.3"
+    "pyodide": "^0.21.3",
+    "tar": "^6.1.12"
   },
   "alias": {
     "sts.py": "/extern/stregsystem-cli/main.py",
