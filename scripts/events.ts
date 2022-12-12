@@ -77,12 +77,14 @@ function get_dates_from_event(event: Event): EventDates {
     let end: Date;
     if (event.start.dateTime === undefined) {
         start = new Date(new Date(event.start.date).toLocaleDateString("en", {timeZone: "America/New_York"}));
+        start.setDate(start.getDate() + 1)
     } else {
         start = new Date(event.start.dateTime);
     }
 
     if (event.end.dateTime === undefined) {
         end = new Date(new Date(event.end.date).toLocaleDateString("en", {timeZone: "America/New_York"}));
+        end.setDate(end.getDate() + 1)
     } else {
         end = new Date(event.end.dateTime);
     }
@@ -134,8 +136,12 @@ class FaEvents extends HTMLElement {
         let current_date = new Date();
         disable_loading_indicator();
 
+
         let upcoming = document.createElement("div");
         upcoming.className = "border-outer";
+
+        let ongoing = document.createElement("div");
+        ongoing.className = "border-outer";
 
         let past = document.createElement("div");
         past.className = "border-outer";
@@ -151,21 +157,31 @@ class FaEvents extends HTMLElement {
                 hour: '2-digit',
                 minute: '2-digit'});
             element.innerText = `${time_string} - ${events[i].summary}`;
-            if (event_dates.start > current_date)
+            if (event_dates.start < current_date && event_dates.end > current_date)
+                ongoing.appendChild(element);
+            else if (event_dates.start > current_date)
                 upcoming.appendChild(element);
-            else 
+            else
                 past.appendChild(element);
         }
-
-        let header = document.createElement("h2");
-        header.innerText = "Upcoming";
-        this.appendChild(header);
-        this.appendChild(upcoming);
-
-        header = document.createElement("h2");
-        header.innerText = "Past";
-        this.appendChild(header);
-        this.appendChild(past);
+        if (ongoing.children.length > 0) {
+            let header = document.createElement("h2");
+            header.innerText = "Ongoing";
+            this.appendChild(header);
+            this.appendChild(ongoing);
+        }
+        if (upcoming.children.length > 0){
+            let header = document.createElement("h2");
+            header.innerText = "Upcoming";
+            this.appendChild(header);
+            this.appendChild(upcoming);
+        }
+        if (past.children.length > 0){
+            let header = document.createElement("h2");
+            header.innerText = "Past";
+            this.appendChild(header);
+            this.appendChild(past);
+        }
 
         let link = document.createElement("a");
         link.href = `${events_base_url}${events_id}`;
