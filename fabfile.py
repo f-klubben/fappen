@@ -23,8 +23,8 @@ def deploy_latest_release(c, workdir=None):
         print("No suitable build archive found for latest release")
         return
 
-    c.run(f'cd {workdir}')
-    c.run(f'curl -L0 {release} --output build.tar.gz')
-    c.run('tar -xf build.tar.gz')
-    c.run('rm -f build.tar.gz')
+    with c.cd(workdir):
+        c.run(f'curl -L0 {release} --output build.tar.gz')
+        c.run('tar -xf build.tar.gz')
+        c.run('rm -f build.tar.gz')
 
