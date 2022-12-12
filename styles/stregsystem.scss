@@ -5,6 +5,7 @@ fa-stregsystem {
   flex-direction: column;
   flex-grow: 1;
   width: 90%;
+  overflow-y: scroll;
 
   &.profile-prompt input {
     margin-bottom: 10px;
@@ -15,17 +16,24 @@ fa-stregsystem {
     display: flex;
     flex-direction: column;
     margin-top: 10px;
+    overflow-y: scroll;
+    max-height: calc(100% - 55px);
+    margin-bottom: 5px;
   }
-
 }
 
 fa-streg-cart {
   height: 55px;
   border-top: solid var(--fg1) 1px;
-  margin-top: auto;
+
+  //margin-top: auto;
 
   > :nth-child(2) {
     float: right;
+  }
+  span {
+    color: blue;
+    text-decoration: underline;
   }
 }
 

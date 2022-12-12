@@ -6,6 +6,6 @@ block content
     h1 Links to Fklub services
     .links.border-outer
         each key in Object.keys(links)
-            a(href=links[key])
+            a(href=links[key] target="_blank")
                 .border-inner
                     h3=key
