@@ -1,0 +1,10 @@
+{
+  "id": "dev",
+  "env": {},
+  "build": {
+    "build_songbook": false
+  },
+  "features": {
+    "cli_backend": false
+  }
+}

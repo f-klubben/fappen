@@ -13,18 +13,27 @@ def deploy_latest_release(c, workdir=None):
     res = requests.get(RELEASE_ENDPOINT)
     json = res.json()
 
-    release = None
+    release = []
     for asset in json['assets']:
         if re.fullmatch(r"build-.*\.tar\.gz", asset['name']) is not None:
-            release = asset['browser_download_url']
+            release.append(asset)
             break
 
-    if release is None:
+    if len(release) == 0:
         print("No suitable build archive found for latest release")
         return
 
+    print("Archives:")
+    for i in range(0, len(release)):
+        print(f"{i}) {release[i]['name']}")
+
+    release_id = input("Select a release archive: ")
+    release_id = int(release_id)
+
+    release = release[release_id]
+
     with c.cd(workdir):
-        c.run(f'curl -L0 {release} --output build.tar.gz')
+        c.run(f'curl -L0 {release["browser_download_url"]} --output build.tar.gz')
         c.run('tar -xf build.tar.gz')
         c.run('rm -f build.tar.gz')
 

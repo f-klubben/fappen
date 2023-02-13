@@ -1,0 +1,13 @@
+{
+  "id": "release",
+  "env": {
+    "FA_API_URL": "https://stregsystem.fklub.dk/api",
+    "FA_DEFAULT_ROOM": 10
+  },
+  "build": {
+    "build_songbook": false
+  },
+  "features": {
+    "cli_backend": true
+  }
+}

@@ -199,3 +199,6 @@ pages/songbook/songs.json
 
 venv
 package-lock.json
+.local
+sangbog
+build

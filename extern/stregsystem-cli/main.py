@@ -1017,7 +1017,7 @@ def parse(args, parser: argparse.ArgumentParser):
     return args
 
 
-if __name__ == '__main__':
+if __name__ == '__main__' and not force_disable_main:
     configuration = Configuration()
 
     arg_array = sys.argv[1::]

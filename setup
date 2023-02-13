@@ -1,0 +1,352 @@
+#!/bin/env -S node
+
+const http = require('http');
+const stream = require('stream');
+
+const {readdir, rm, mkdir, stat, writeFile, readFile} = require('fs/promises');
+const {promisify} = require('util');
+const {exec} = require('child_process');
+
+const httpGet = promisify(http.get);
+const pipeline = promisify(stream.pipeline);
+const package_info = require('./package.json');
+
+
+const github_api_url = 'https://api.github.com/';
+const github_repo_str = 'repos/f-klubben/fappen/';
+
+const options = {
+    verbose: false,
+}
+
+const print = (...args) => console.log(...args);
+
+const print_v = (...args) => {
+    if (options.verbose) print(...args);
+};
+
+/*
+    Bootstrapping functions
+    ---
+    The script may be run before the necessary dependencies have been
+    installed, so we use some helper functions to get the environment setup.
+ */
+
+const node_modules_exists = async () => {
+    try {
+        await readdir('./node_modules');
+        return true;
+    } catch (e) {
+        return false;
+    }
+};
+
+const npm_install = () => new Promise((resolve, reject) => {
+    exec('npm install', function (error, stdout, stderr) {
+        if (error)
+            return reject(error);
+
+        if (options.verbose)
+            print_v(stdout);
+
+        console.error(stderr);
+    })
+});
+
+const import_zx = async (r = true) => {
+    let zx;
+    try {
+        zx = await import('zx');
+    } catch (e) {
+        print('Installing dependencies...');
+        await npm_install();
+        if (r)
+            return import_zx(false);
+    }
+
+    return zx;
+};
+
+(async () => {
+    /*
+        Program checks
+     */
+
+    const check_program = (name, run, regex, selector) => async () => {
+        print(`Checking ${name}...`);
+        try {
+            const out = await run();
+            const r = regex.exec(out.stdout);
+            if (r == null)
+                return null;
+
+            const version = await selector(r);
+            print(`${name} version found: ${version}`);
+
+            return version;
+        } catch (e) {
+            return null;
+        }
+    };
+
+    const pandoc_version_regex = /^pandoc (.*)$/;
+    const check_pandoc = check_program(
+        'Pandoc',
+        () => $`pandoc --version`,
+        pandoc_version_regex,
+        match => match[1],
+    );
+
+
+    /*
+        Github API
+     */
+    const github_repo_endpoint = path => {
+        if (path[0] === '/')
+            path = path.slice(1);
+        return `${github_api_url}${github_repo_str}${path}`
+    }
+
+    const github_release = (version = 'latest') => {
+        let release_id = version;
+        if (version !== 'latest') {
+            throw new Error("this don't work yet");
+        }
+        const endpoint = github_repo_endpoint(`/releases/${release_id}`);
+        return fetch(endpoint);
+    };
+
+    /*
+        Songbook
+     */
+
+    const songbook_clear_artifacts = async () => {
+        print('Removing old songbook artifacts...');
+        try {
+            await rm('./pages/songbook/songs.json', {force: true});
+            await rm('./pages/songbook/songs', {force: true, recursive: true});
+        } catch (e) {
+            console.error('Something went wrong removing artifacts.');
+            console.error(e);
+        }
+    };
+
+    const songbook_build = async () => {
+        await check_pandoc();
+    };
+
+    const songbook_fetch_artifacts = async (version = 'latest') => {
+        print(`Fetching release info for version: ${version}`);
+
+        const release_info = await github_release(version)
+            .then(res => res.json());
+
+        let archive_link;
+        for (const asset of release_info['assets']) {
+            if (asset['name'] === "songbook.tar.gz") {
+                archive_link = asset['browser_download_url'];
+                break;
+            }
+        }
+
+        if (archive_link == null) {
+            print(`Release '${version}' does not contain songbook artifacts.`);
+            throw new Error("unable to fetch songbook artifacts");
+        }
+
+        // fetch and unpack the artifacts
+        await pipeline(
+            (await fetch(archive_link)).body,
+            tar.x({cwd: './pages/songbook'}),
+        );
+    }
+
+    /*
+        local config & profile management
+     */
+
+    const release_profile = 'release';
+    const dev_profile = 'dev';
+
+    const root = (path='') => `./${path}`;
+    const local = (path='') => root(`.local/${path}`);
+
+    const find_profile = async (profile) => {
+        const name = `profile.${profile}.json`;
+
+        const root_dir = await readdir(root());
+        if (root_dir.includes(name)) {
+            return root(name);
+        }
+
+        const local_dir = await readdir(local());
+        if (local_dir.includes(name)) {
+            return local(name);
+        }
+
+        return null;
+    };
+
+    const init_local_config = async (base_profile) => {
+        try {
+            const local_stat = await stat(local());
+            if (!local_stat.isDirectory()) {
+                console.error("File found instead of directory at `.local`. Please relocate the file and try again.");
+                process.exit();
+            }
+        } catch (_) {
+            await mkdir(local());
+        }
+
+        try {
+            const local_cfg_stat = await stat(local('config.json'));
+            if (!local_cfg_stat.isFile()) {
+                console.error("Directory found in place of `.local/config.json`. Please relocate the directory and try again.");
+                process.exit();
+            }
+
+            return await import(local('config.json'));
+        } catch (_) {
+            const profile = await find_profile(base_profile);
+            const config = {
+                profile,
+            }
+
+            await writeFile(local('config.json'), JSON.stringify(config));
+            return config;
+        }
+    };
+
+    const get_local_config = async (retry=true) => {
+        try {
+            return JSON.parse((await readFile(local('config.json'))).toString());
+        } catch (e) {
+            console.error(
+                `No local config found. Creating one using the \`${dev_profile}\` profile as default.
+                use \`setup profile set <profile-name>\` to use a different profile.`);
+            return await init_local_config(dev_profile);
+        }
+    }
+
+    /*
+        Setup
+     */
+
+    const setup = async argv => {
+        if (argv.noFetchSongbook !== false) {
+            await songbook_clear_artifacts();
+            await songbook_fetch_artifacts();
+        }
+    };
+
+    /*
+        Build
+     */
+
+    const build = async argv => {
+        let profile;
+        if (argv.profile != null) {
+            const profile_path = await find_profile(argv.profile);
+            profile = JSON.parse((await readFile(profile_path)).toString());
+        } else {
+            profile = JSON.parse((await readFile(config.profile)).toString());
+        }
+
+        console.log("Building project...");
+        console.log(`Using build profile: ${profile.id}`);
+
+        if (profile.env == null)
+            profile.env = {};
+
+        // TODO check that feature strings are valid
+        process.env.FA_FEATURES = (process.env.FA_FEATURES || "") +
+            ";" + (profile.env.FA_FEATURES || "") + ";" + argv.features;
+
+        for (const key in profile.env) {
+            process.env[key] = profile.env[key];
+        }
+
+        try {
+            await $`npm run build`;
+        } catch (e) {
+            console.log(e);
+        }
+
+        const version = argv['build-version'] || package_info.version;
+        const tag = argv.tag;
+
+        tar.create({
+            gzip: true,
+            file: root(`build/build-${version}-${tag}.tar.gz`),
+        }, [root('build/dist')])
+    }
+
+    /*
+        entrypoint
+    */
+
+    const zx = await import_zx();
+    const {$, fetch} = zx;
+    const {spinner} = await import('zx/experimental');
+
+    if (await node_modules_exists() === false) {
+        await spinner('Installing dependencies...', () => npm_install());
+    }
+
+    const tar = await import('tar');
+
+    const yargs = require('yargs/yargs');
+
+    const config = await get_local_config();
+
+    yargs(process.argv.slice(2))
+        .scriptName("setup")
+        .usage('$0 <cmd> [args]')
+        .command('profile', 'configure the active profile',
+            yargs => yargs
+                .command('set', 'set the active profile', argv => {
+                    console.log('set?');
+                    // TODO set and commit the profile
+                }),
+            argv => {
+                console.log(config.profile)
+            }
+        )
+        .command(['$0', 'setup'], 'prepare the workspace for developement',
+            yargs => yargs
+                .option('b', {
+                    alias: 'no-fetch-songbook',
+                    default: false,
+                    describe: 'should songbook artifacts be fetched?',
+                    type: 'boolean',
+                }),
+            setup
+        )
+        .command('build', 'build the project',
+            yargs => yargs
+                .option('p', {
+                    alias: 'profile',
+                    default: null,
+                    describe: 'override the default profile',
+                })
+                .option('f', {
+                    alias: 'features',
+                    default: "",
+                    describe: "toggle individual features (e.g. +cli-backend or -cli-backend;+feature2)"
+                })
+                .option('v', {
+                    alias: 'build-version',
+                    default: null,
+                    describe: "override the version (default uses package.json value)"
+                })
+                .positional('tag', {
+                    describe: "the name of the build (e.g. live or demo)",
+                    default: "live",
+                }),
+            build
+        )
+        .help()
+        .parse()
+
+})();
+
