@@ -217,7 +217,7 @@ const import_zx = async (r = true) => {
         }
     };
 
-    const get_local_config = async (retry=true) => {
+    const get_local_config = async () => {
         try {
             return JSON.parse((await readFile(local('config.json'))).toString());
         } catch (e) {
@@ -272,6 +272,8 @@ const import_zx = async (r = true) => {
             console.log(e);
         }
 
+        console.log(argv);
+
         const version = argv['build-version'] || package_info.version;
         const tag = argv.tag;
 
@@ -279,6 +281,8 @@ const import_zx = async (r = true) => {
             gzip: true,
             file: root(`build/build-${version}-${tag}.tar.gz`),
         }, [root('build/dist')])
+
+        console.log(`Build ${version}-${tag}`);
     }
 
     /*
@@ -322,7 +326,7 @@ const import_zx = async (r = true) => {
                 }),
             setup
         )
-        .command('build', 'build the project',
+        .command('build <tag>', 'build the project',
             yargs => yargs
                 .option('p', {
                     alias: 'profile',
