@@ -252,15 +252,35 @@ const import_zx = async (r = true) => {
             profile = JSON.parse((await readFile(config.profile)).toString());
         }
 
-        console.log("Building project...");
-        console.log(`Using build profile: ${profile.id}`);
+        print("Building project...");
+        print(`Using build profile: ${profile.id}`);
 
         if (profile.env == null)
             profile.env = {};
 
+        console.log(profile.env.FA_FEATURES);
+
+        let profileFeatures = [];
+        if (profile.features instanceof Array) {
+            profileFeatures = profile.features;
+        } else if (typeof profile.features === 'object') {
+            profileFeatures = Object.keys(profile.features)
+                .map(key => {
+                    if (profile.features[key]) {
+                        return `+${key}`;
+                    } else {
+                        return `-${key}`;
+                    }
+                });
+        }
+
         // TODO check that feature strings are valid
-        process.env.FA_FEATURES = (process.env.FA_FEATURES || "") +
-            ";" + (profile.env.FA_FEATURES || "") + ";" + argv.features;
+        process.env.FA_FEATURES = [
+            (process.env.FA_FEATURES || ""),
+            (profile.env.FA_FEATURES || ""),
+            argv.features,
+            profileFeatures.join(';'),
+        ].join(';');
 
         for (const key in profile.env) {
             process.env[key] = profile.env[key];
@@ -269,10 +289,8 @@ const import_zx = async (r = true) => {
         try {
             await $`npm run build`;
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
-
-        console.log(argv);
 
         const version = argv['build-version'] || package_info.version;
         const tag = argv.tag;
@@ -280,9 +298,10 @@ const import_zx = async (r = true) => {
         tar.create({
             gzip: true,
             file: root(`build/build-${version}-${tag}.tar.gz`),
-        }, [root('build/dist')])
+            cwd: root('build/dist'),
+        }, ['.']);
 
-        console.log(`Build ${version}-${tag}`);
+        print(`Build ${version}-${tag}`);
     }
 
     /*
@@ -309,8 +328,6 @@ const import_zx = async (r = true) => {
         .command('profile', 'configure the active profile',
             yargs => yargs
                 .command('set', 'set the active profile', argv => {
-                    console.log('set?');
-                    // TODO set and commit the profile
                 }),
             argv => {
                 console.log(config.profile)

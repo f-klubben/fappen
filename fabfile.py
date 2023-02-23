@@ -17,7 +17,6 @@ def deploy_latest_release(c, workdir=None):
     for asset in json['assets']:
         if re.fullmatch(r"build-.*\.tar\.gz", asset['name']) is not None:
             release.append(asset)
-            break
 
     if len(release) == 0:
         print("No suitable build archive found for latest release")
