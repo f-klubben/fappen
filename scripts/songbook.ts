@@ -1,10 +1,10 @@
 // @ts-ignore
 import songs from "../pages/songbook/songs.json";
 import {string_to_array, similiarity} from "../scripts/util/search";
+import {debounce} from "../scripts/util/common";
 
 const search_element = document.getElementById("search") as HTMLInputElement;
 const links_element = document.getElementById("links");
-
 
 interface SongElement {
     element:    HTMLElement,
@@ -32,21 +32,23 @@ function create_song_element(key: string, link: string, index: number): SongElem
     };
 }
 
-search_element.addEventListener("change", (e: KeyboardEvent) => {
-    const a = search_element.value;
-    if (a === "") {
-        links_element.innerHTML = "";
-        song_elements = song_elements.sort((a, b) => a.index - b.index);
-    } else {
-        for(const song of song_elements)
-            song.score = similiarity(string_to_array(a), song.search);
-
-        song_elements = song_elements.sort((a, b) => a.score - b.score);
-        links_element.innerHTML = "";
-    }
-    for(const song_element of song_elements)
-        links_element.appendChild(song_element.element);
-});
+search_element.addEventListener("input",
+    debounce(100, _ => {
+        const a = search_element.value;
+        if (a === "") {
+            links_element.innerHTML = "";
+            song_elements = song_elements.sort((a, b) => a.index - b.index);
+        } else {
+            for(const song of song_elements)
+                song.score = similiarity(string_to_array(a), song.search);
+    
+            song_elements = song_elements.sort((a, b) => a.score - b.score);
+            links_element.innerHTML = "";
+        }
+        for(const song_element of song_elements)
+            links_element.appendChild(song_element.element);
+    })
+);
 
 document.addEventListener("DOMContentLoaded", _ => {
     let i = 0;
