@@ -233,7 +233,7 @@ const import_zx = async (r = true) => {
      */
 
     const setup = async argv => {
-        if (argv.noFetchSongbook !== false) {
+        if (argv.noFetchSongbook !== true) {
             await songbook_clear_artifacts();
             await songbook_fetch_artifacts();
         }
