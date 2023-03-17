@@ -2,7 +2,7 @@ const readFileSync = require("fs").readFileSync;
 
 module.exports = {
     locals: {
-        app_name: "F-Appen",
+        app_name: "Fappen",
         manifest: require('./manifest.json'),
         navigation: {
             Frontpage: "/pages/index.pug",
