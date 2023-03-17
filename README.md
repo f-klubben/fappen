@@ -1,7 +1,7 @@
 
-# F-Appen
+# Fappen
 
-F-Appen is an app that strives to connect the various F-Klub services/systems in a single mobile package.
+Fappen is an app that strives to connect the various F-Klub services/systems in a single mobile package.
 
 ## Project Environment  
   

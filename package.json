@@ -1,5 +1,5 @@
 {
-  "name": "f-appen",
+  "name": "fappen",
   "source": "pages/index.pug",
   "scripts": {
     "start": "parcel pages/index.pug pages/songbook/songs/*.pug --dist-dir build/dist",
