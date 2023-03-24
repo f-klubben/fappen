@@ -42,7 +42,7 @@ export const get_user_info = (user_id: number): Promise<any> =>
                     decode_html_escapes(reg_firstname.exec(response_text)[1]),
                     decode_html_escapes(reg_lastname.exec(response_text)[1]),
                 ].join(' '),
-                balance: parseFloat(reg_balance.exec(response_text)[1]),
+                balance: parseFloat(reg_balance.exec(response_text)[1]) * 100,
                 active: true,
             };
         })

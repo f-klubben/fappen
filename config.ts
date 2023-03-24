@@ -5,7 +5,7 @@ function read_feature_list() {
         cli_backend: false,
     };
 
-    process.env.FA_FEATURES
+    (process.env.FA_FEATURES || "")
         .split(';')
         .map(value => {
             const mode = value.charAt(0);
