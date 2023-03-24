@@ -24,8 +24,12 @@ fa-stregsystem {
 
 fa-streg-cart {
   height: 55px;
-  border-top: solid var(--fg1) 1px;
-
+  border-top: solid var(--fg1)1px;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background-color: white;
+  left: 0;
   //margin-top: auto;
 
   > :nth-child(2) {
