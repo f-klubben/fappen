@@ -1,0 +1,3 @@
+[submodule "extern/stregsystemet-cli"]
+	path = extern/stregsystemet-cli
+	url = https://github.com/f-klubben/stregsystemet-cli

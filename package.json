@@ -44,8 +44,8 @@
     "tar": "^6.1.12"
   },
   "alias": {
-    "sts.py": "/extern/stregsystem-cli/main.py",
-    "sts-py": "/extern/stregsystem-cli/dist/sts-0.0.3-py3-none-any.whl",
-    "test": "/extern/stregsystem-cli/dist/pyodide_http-0.2.0-py3-none-any.whl"
+    "sts.py": "/extern/stregsystemet-cli/main.py",
+    "sts-py": "/extern/stregsystemet-cli/dist/sts-0.0.3-py3-none-any.whl",
+    "test": "/extern/stregsystemet-cli/dist/pyodide_http-0.2.0-py3-none-any.whl"
   }
 }
