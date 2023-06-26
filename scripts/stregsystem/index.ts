@@ -531,7 +531,7 @@ class FaProfileWidget extends HTMLElement {
     profile: UserProfile;
 
     balance: Text;
-    username: Text;
+    username: Text
 
     constructor() {
         super();
@@ -548,12 +548,21 @@ class FaProfileWidget extends HTMLElement {
         pointer_events(this, {
             hold: [800, this.logout.bind(this)],
         });
+
+        window.addEventListener('focus', () => {
+            const now = Date.now();
+            if (last_balance_bg_update - now > 5000) {
+                void this.update_balance(now);
+            }
+        });
     }
 
     on_profile_load(profile: UserProfile) {
         this.profile = profile;
         this.username.textContent = profile.username;
         this.balance.textContent = format_stregdollar(profile.balance);
+
+        setTimeout(() => this.balance_update_job(), 10000);
     }
 
     async logout() {
@@ -564,6 +573,22 @@ class FaProfileWidget extends HTMLElement {
     on_balance_change(change: BalanceChange) {
         this.balance.textContent = format_stregdollar(change.new_balance);
     }
+
+    async update_balance(now: number) {
+        const balance = await backend.get_user_balance(this.profile.id);
+        last_balance_bg_update = now;
+        await AppDatabase.instance.settings.put(now, AppDatabase.balance_update_time_key);
+        events.profile_balance_change.dispatch({old_balance: this.profile.balance, new_balance: balance})
+    }
+
+    async balance_update_job() {
+        const now = Date.now();
+
+        if (now - last_balance_bg_update >= 10000)
+            await this.update_balance(now);
+
+        setTimeout( () => this.balance_update_job(), 10000);
+    };
 }
 
 class FaStregsystem extends HTMLElement {
@@ -679,12 +704,16 @@ class FaStregsystem extends HTMLElement {
 
 }
 
+let last_balance_bg_update: number;
+
 export const init = async () => {
     customElements.define("fa-streg-product", FaStregProduct);
     customElements.define("fa-streg-cart", FaStregCart);
     customElements.define("fa-streg-cart-dialog", FaStregCartDialog);
     customElements.define("fa-stregsystem", FaStregsystem);
     customElements.define("fa-profile-widget", FaProfileWidget);
+
+    last_balance_bg_update = await AppDatabase.instance.settings.get(AppDatabase.balance_update_time_key) | 0;
 
     await backend.init();
 
