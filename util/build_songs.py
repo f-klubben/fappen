@@ -8,7 +8,7 @@ def main():
     in_path = os.path.join(os.path.curdir, 'sangbog', 'sange')
     out_path = os.path.join(os.path.curdir, 'pages', 'songbook', 'songs')
     template_path = os.path.join(os.path.curdir, 'util', 'templates', 'tex_to.html')
-    black_list = [] #["enkortenlang.tex", "vendelboensfestsang.tex"]
+    black_list = []
     files = os.listdir(in_path)
     json_res = {}
 
@@ -181,13 +181,6 @@ def make_song_pug_file(file_path, file_name):
                    "block content \n" \
                    f"    include {file_name}.html\n" 
         f.write(pug_text)
-
-#<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
-#<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
-#<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
-#    onload="renderMathInElement(document.body);"></script>
-
-
 
 def fixStr(string):
     return string.replace('\LaTeX{}', "$\LaTeX$ ").replace("{", "<b>").replace("}", "</b").replace("\em", "").replace("\sl", "").replace("\sf", "").replace("\sc", "").replace("\\bf", "").replace("\\tt", "").replace("\small", "").replace("\\vspace1mm", "")
