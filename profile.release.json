@@ -8,6 +8,6 @@
     "build_songbook": false
   },
   "features": {
-    "cli_backend": true
+    "cli_backend": false
   }
 }
