@@ -82,7 +82,7 @@ def generate_document(song_info, verses, omkvaed, images):
     return f"""
     <div class="info wrap">
         <div class="name wrap-child">{name}</div>
-        <div class="melody wrap-child">{melody}</div>
+        <div class="melody wrap-child">Melody - {melody}</div>
     </div>
     <div class="song-body">
         <br/><br/>
