@@ -183,5 +183,5 @@ def make_song_pug_file(file_path, file_name):
         f.write(pug_text)
 
 def fixStr(string):
-    return string.replace('\LaTeX{}', "$\LaTeX$ ").replace("{", "<b>").replace("}", "</b").replace("\em", "").replace("\sl", "").replace("\sf", "").replace("\sc", "").replace("\\bf", "").replace("\\tt", "").replace("\small", "").replace("\\vspace1mm", "")
+    return string.replace('\LaTeX{}', "$\LaTeX$ ").replace("{", "").replace("}", "").replace("\em", "").replace("\sl", "").replace("\sf", "").replace("\sc", "").replace("\\bf", "").replace("\\tt", "").replace("\small", "").replace("\\vspace1mm", "")
 main()
