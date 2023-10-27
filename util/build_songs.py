@@ -36,10 +36,10 @@ def main():
                 content = f.read()
                 f.close()
                 verses = get_verses(content)
-                omkvaed = get_verses2(content)
+                chorus = get_chorus(content)
                 images = get_images(content)
                 if verses != [] or images != []:
-                    res = generate_document(song_info, verses, omkvaed, images)
+                    res = generate_document(song_info, verses, chorus, images)
                     with open(f"{os.path.join(out_path, file_name)}.html", "w") as f:
                         f.write(res)
                     make_song_pug_file(os.path.join(out_path, file_name), file_name)
@@ -49,13 +49,13 @@ def main():
        f.write(json.dumps(json_res, ensure_ascii=False))
 
 
-def generate_document(song_info, verses, omkvaed, images):
+def generate_document(song_info, verses, chorus, images):
     name, melody = song_info
     IS_VERSE = 2
     content = []
     content.extend(verses)
-    content.extend(omkvaed)
-    content.extend(images)
+    content.extend(chorus)
+    content.extend(images).
     sorted(content, key=lambda x: x[0])
 
     sbody = ""
@@ -69,11 +69,11 @@ def generate_document(song_info, verses, omkvaed, images):
             <div class="num wrap-child">{x}. </div>
             <div class="vtext wrap-child">{fixStr(temp)}</div>
         </div><br/><br/>"""
-        elif el[1] == "o":
+        elif el[1] == "c":
             x+=1
             temp = el[2].rstrip().replace("\n", "<br/>")
             sbody+= f"""
-        <div class="omkvead wrap">
+        <div class="chorus wrap">
             <div class="num wrap-child">{x}. </div>
             <div class="vtext wrap-child">{fixStr(temp)}</div>
         </div><br/><br/>"""
@@ -82,7 +82,7 @@ def generate_document(song_info, verses, omkvaed, images):
     return f"""
     <div class="info wrap">
         <div class="name wrap-child">{name}</div>
-        <div class="melody wrap-child">Melody - {melody}</div>
+        <div class="melody wrap-child">{ "Melody - " + melody if melody != "" else  melody}</div>
     </div>
     <div class="song-body">
         <br/><br/>
@@ -124,12 +124,12 @@ def get_verses(content):
         res.append((start, "v",match.group(1)))
     return res
 
-def get_verses2(content):
+def get_chorus(content):
     matches = re.compile(r"\\begin\{omkvaed\}\[?\w?\]?\s*([^\\]*)", re.MULTILINE|re.DOTALL)
     res = []
     for match in matches.finditer(content):
         start = content[0:match.start()].count("\n")
-        res.append((start,"o", match.group(1)))
+        res.append((start,"c", match.group(1)))
     return res
 
 def get_images(content):
