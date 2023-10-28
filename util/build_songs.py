@@ -97,7 +97,7 @@ def get_song_body(body_list, archive):
             pargraph+=1
             body += text_t.substitute(
                 type = "verse",
-                line = f"&nbsp{pargraph}.", 
+                line = f"{pargraph}.", 
                 text = fix_string_formatting(el[2])
             ) 
         elif el[1] == "c":
