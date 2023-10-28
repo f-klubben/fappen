@@ -1,0 +1,27 @@
+extends ../../../components/base_layout 
+block head 
+    link(rel="stylesheet" href="/styles/songbook.scss")
+    link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css")
+    script(src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" defer)
+    script(src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" defer)
+block content 
+    .info.wrap
+        .name.wrap-child $name
+        .melody.wrap-child $melody
+    .song-body
+        br
+        br
+$sbody
+    script.
+        document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+        // customised options
+        // • auto-render specific keys, e.g.:
+        delimiters: [
+        {left: '$$$$', right: '$$$$', display: true},
+        {left: '$$', right: '$$', display: false},
+        ],
+        // • rendering keys, e.g.:
+        throwOnError : false
+        });
+        })
