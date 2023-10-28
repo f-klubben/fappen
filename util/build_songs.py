@@ -1,120 +1,37 @@
 import os
+import zipfile
 import re
 import json
 import fileinput
-import base64
+from urllib.request import urlretrieve
+from string import Template
 
-def main():
-    in_path = os.path.join(os.path.curdir, 'sangbog', 'sange')
-    out_path = os.path.join(os.path.curdir, 'pages', 'songbook', 'songs')
-    template_path = os.path.join(os.path.curdir, 'util', 'templates', 'tex_to.html')
-    black_list = []
-    files = os.listdir(in_path)
-    json_res = {}
+OUTPUT_PATH = os.path.join(os.path.curdir, 'pages', 'songbook', 'songs')
+OUTPUT_IMAGE_PATH = os.path.join(os.path.curdir, 'media', 'songs')
+def get_songbook(file_path):
+    url = 'https://github.com/f-klubben/sangbog/archive/master.zip'
+    urlretrieve(url, file_path)
+    return file_path
 
-    if not os.path.exists(out_path):
-        os.mkdir(out_path)
-    else:
-        clean_folder(out_path)
-    
-    for file in files:
-        if file not in black_list:
-            file_path = os.path.join(in_path, file)
-            file_name = os.path.splitext(os.path.basename(file_path))[0]
-            out = os.path.join(out_path, file_name + ".html")
-            #cmd = f"pandoc -s {file_path} -o {out} --template={template_path} --metadata title='{file_name}' --lua-filter ./util/fix_formatting.lua"
-            #os.system(cmd)
-            song_info = get_song_info(file_path)
-            if song_info != None:
-                f = open(file_path, encoding="utf-8")
-                columns = get_song_columns(f)
-                hasColumns = False
-                if columns != None:
-                    hasColumns = True
-                    #print(columns)
-                f.seek(0, 0) # reset to top of file
-                content = f.read()
-                f.close()
-                verses = get_verses(content)
-                chorus = get_chorus(content)
-                images = get_images(content)
-                if verses != [] or images != []:
-                    res = generate_document(song_info, verses, chorus, images)
-                    with open(f"{os.path.join(out_path, file_name)}.html", "w") as f:
-                        f.write(res)
-                    make_song_pug_file(os.path.join(out_path, file_name), file_name)
-                    json_res[song_info[0]] = f"./songs/{file_name}.html"
+def get_file_contents(archive, path):
+    contents = ""
+    with archive.open(path, mode="r") as data:
+        contents = data.read()
+    return contents
 
-    with open(os.path.join(os.path.curdir, 'pages', 'songbook', 'songs.json'), encoding="utf-8", mode="w") as f:
-       f.write(json.dumps(json_res, ensure_ascii=False))
-
-
-def generate_document(song_info, verses, chorus, images):
-    name, melody = song_info
-    IS_VERSE = 2
-    content = []
-    content.extend(verses)
-    content.extend(chorus)
-    content.extend(images).
-    sorted(content, key=lambda x: x[0])
-
-    sbody = ""
-    x = 0
-    for el in content:
-        if el[1] == "v":
-            x+=1
-            temp = el[2].rstrip().replace("\n", "<br/>")
-            sbody+= f"""
-        <div class="verse wrap">
-            <div class="num wrap-child">{x}. </div>
-            <div class="vtext wrap-child">{fixStr(temp)}</div>
-        </div><br/><br/>"""
-        elif el[1] == "c":
-            x+=1
-            temp = el[2].rstrip().replace("\n", "<br/>")
-            sbody+= f"""
-        <div class="chorus wrap">
-            <div class="num wrap-child">{x}. </div>
-            <div class="vtext wrap-child">{fixStr(temp)}</div>
-        </div><br/><br/>"""
-        elif el[1] == "i":
-            sbody+= f"""<img class="image" src="data:image/png;base64, {img2b64("./sangbog/"+el[3]).decode()}" alt="Red dot" /><br/>"""
-    return f"""
-    <div class="info wrap">
-        <div class="name wrap-child">{name}</div>
-        <div class="melody wrap-child">{ "Melody - " + melody if melody != "" else  melody}</div>
-    </div>
-    <div class="song-body">
-        <br/><br/>
-        {sbody}
-    </div>
-    <script>
-    document.addEventListener("DOMContentLoaded", function() {{
-        renderMathInElement(document.body, {{
-          // customised options
-          // • auto-render specific keys, e.g.:
-          delimiters: [
-              {{left: '$$', right: '$$', display: true}},
-              {{left: '$', right: '$', display: false}},
-          ],
-          // • rendering keys, e.g.:
-          throwOnError : false
-        }});
-    }})
-    </script>
-
-"""
-
+def get_song_info(content):
+    reg = re.compile(r"\\begin\{sang\}\{([^\}]*)\}\{([^\}]*)\}")
+    match = reg.match(content)
+    if match != None:
+        return (
+            match.group(1).capitalize(), 
+            match.group(2).replace("\\ldots", "…").replace("Melodi - ", "").replace("Melodi:", "").lstrip().capitalize()
+        )
 
 def img2b64(path):
     with open(path, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read())
     return encoded_string
-
-def clean_folder(path):
-    files = os.listdir(path)
-    for file in files:
-        os.remove(os.path.join(path, file))
 
 def get_verses(content):
     matches = re.compile(r"(?s)\\begin\{vers\}\s?(.*?)\\end\{vers\}", re.MULTILINE|re.DOTALL)
@@ -124,7 +41,7 @@ def get_verses(content):
         res.append((start, "v",match.group(1)))
     return res
 
-def get_chorus(content):
+def get_choruses(content):
     matches = re.compile(r"\\begin\{omkvaed\}\[?\w?\]?\s*([^\\]*)", re.MULTILINE|re.DOTALL)
     res = []
     for match in matches.finditer(content):
@@ -139,49 +56,106 @@ def get_images(content):
         start = content[0:match.start()].count("\n")
         res.append((start, "i", match.group(1),match.group(2).replace(".eps", ".png")))
     return res
-    
-def get_song_info(file_path):
-    with open(file_path, encoding="utf-8") as f:
-        line = f.readline()
-        reg = re.compile(r"\\begin\{sang\}\{([^\}]*)\}\{([^\}]*)\}")
-        match = reg.match(line)
-        if match != None:
-            return (
-                match.group(1)
-                .capitalize(), 
-                match.group(2)
-                    .replace("\\ldots", "…")
-                    .replace("Melodi - ", "")
-                    .replace("Melodi:", "")
-                    .lstrip()
-                    .capitalize()
+
+def get_template(name):
+    contents = ""
+    with open(os.path.join(os.getcwd(), f"util/template/{name}.pug"), mode="r") as data:
+        contents = data.read()
+    return Template(contents)
+
+def merge_lists(v, c, i):
+    l = []
+    l.extend(v)
+    l.extend(c)
+    l.extend(i)
+    return sorted(l, key=lambda x: x[0])
+
+def fix_string_formatting(s):
+    return (s
+        .rstrip()
+        .replace("\n", "<br/>")
+        .replace('\LaTeX{}', "$\LaTeX$ ")
+        .replace("\\&", "&")
+        .replace("{", "")
+        .replace("}", "")
+        .replace("\em", "")
+        .replace("\sl", "")
+        .replace("\sf", "")
+        .replace("\sc", "")
+        .replace("\\bf", "")
+        .replace("\\tt", "")
+        .replace("\small", "")
+        .replace("\\vspace1mm", "")
+    )
+def get_song_body(body_list, archive):
+    pargraph = 0
+    text_t = get_template("text") # type, line, text
+    image_t = get_template("image") # b64image
+    body = ""
+    for el in body_list:
+        if el[1] == "v":
+            pargraph+=1
+            body += text_t.substitute(
+                type = "verse",
+                line = f"&nbsp{pargraph}.", 
+                text = fix_string_formatting(el[2])
+            ) 
+        elif el[1] == "c":
+            pargraph+=1
+            body += text_t.substitute(
+                type = "chorus",
+                line = pargraph, 
+                text = fix_string_formatting(el[2])
             )
+        elif el[1] == "i": 
+            image = get_file_contents(
+                archive,
+                f"sangbog-main/{el[3]}"
+            )
+            image_path = os.path.join(OUTPUT_IMAGE_PATH, el[3].split("/")[1])
+            with open(image_path, mode="wb")as f:
+                f.write(image)
+            body += image_t.substitute(
+                image = f"../../.{image_path}"
+            )
+        body += "\n"
+    return body
 
-def get_song_columns(f):
-        line = f.readline()
-        match = None
-        x = 0
-        while (match == None and x < 10):
-            line = f.readline()
-            reg = re.compile(r"\\spal\s*(\d*)")
-            match = reg.match(line)
-            x += 1
-        if match != None:
-            return match.group(1)
-        
-              
-def make_song_pug_file(file_path, file_name):
-    with open(file_path + ".pug", mode = "w", encoding="utf-8") as f:
-        pug_text = "extends ../../../components/base_layout \n" \
-                    "block head \n" \
-                    '    link(rel="stylesheet" href="/styles/songbook.scss")\n' \
-                    '    link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css")\n' \
-                    '    script(src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" defer)\n'\
-                    '    script(src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" defer)\n'\
-                   "block content \n" \
-                   f"    include {file_name}.html\n" 
-        f.write(pug_text)
+def generate_song(song_info, file_name, contents, archive):
+    if song_info == None:
+        return False
+    body_list = merge_lists(
+        get_verses(contents),
+        get_choruses(contents),
+        get_images(contents),
+    )
+    song_body = get_song_body(body_list, archive)
+    song_t = get_template("song")
+    song = song_t.substitute(
+        name = song_info[0],
+        melody = "Melody - "+  song_info[1].replace("\n", "") if song_info[1] != "" else song_info[1],
+        sbody = song_body
+    )
+    path = os.path.join(OUTPUT_PATH, file_name)
+    with open(f"{path}.pug", "w") as f:
+        f.write(song)
+    return True
 
-def fixStr(string):
-    return string.replace('\LaTeX{}', "$\LaTeX$ ").replace("{", "").replace("}", "").replace("\em", "").replace("\sl", "").replace("\sf", "").replace("\sc", "").replace("\\bf", "").replace("\\tt", "").replace("\small", "").replace("\\vspace1mm", "")
+def main():
+    json_res = {}
+    archive_path = os.path.join(os.getcwd(), 'sangbog-main.zip')
+    get_songbook(archive_path)
+    with zipfile.ZipFile(archive_path, mode="r") as archive:
+        for info in archive.infolist():
+            if info.filename.startswith("sangbog-main/sange"):
+                print(f"{info.filename}\n")
+                contents = get_file_contents(archive, info.filename).decode('UTF-8')
+                song_info = get_song_info(contents)
+                file_name = filename = info.filename.split("/")[-1].split(".")[0]
+                if generate_song(song_info, file_name, contents, archive):
+                    json_res[song_info[0]] = f"./songs/{file_name}.html"
+    with open(os.path.join(os.path.curdir, 'pages', 'songbook', 'songs.json'), encoding="utf-8", mode="w") as f:
+       f.write(json.dumps(json_res, ensure_ascii=False))
+    os.remove(os.path.join(os.getcwd(), 'sangbog-main.zip'))
+
 main()

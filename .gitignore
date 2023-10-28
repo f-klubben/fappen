@@ -202,3 +202,5 @@ package-lock.json
 .local
 sangbog
 build
+# Ignores images used in songs.
+media/songs 
