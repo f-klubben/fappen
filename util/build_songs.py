@@ -113,6 +113,7 @@ def get_song_body(body_list, archive):
                 f"sangbog-main/{el[3]}"
             )
             image_path = os.path.join(OUTPUT_IMAGE_PATH, el[3].split("/")[1])
+            os.makedirs(os.path.dirname(image_path), exist_ok=True)
             with open(image_path, mode="wb")as f:
                 f.write(image)
             body += image_t.substitute(
@@ -137,6 +138,7 @@ def generate_song(song_info, file_name, contents, archive):
         sbody = song_body
     )
     path = os.path.join(OUTPUT_PATH, file_name)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(f"{path}.pug", "w") as f:
         f.write(song)
     return True
