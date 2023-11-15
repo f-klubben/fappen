@@ -57,6 +57,14 @@ def get_images(content):
         res.append((start, "i", match.group(1),match.group(2).replace(".eps", ".png")))
     return res
 
+def get_song_order(content):
+    matches = re.compile(r"\\input\{([^\}]*)\/([^.}]*)(.tex|\})", re.MULTILINE|re.DOTALL)
+    res = []
+    for match in matches.finditer(content):
+        start = content[0:match.start()].count("\n")
+        res.append(match.group(2))
+    return res
+
 def get_template(name):
     contents = ""
     with open(os.path.join(os.getcwd(), f"util/template/{name}.pug"), mode="r") as data:
@@ -70,23 +78,32 @@ def merge_lists(v, c, i):
     l.extend(i)
     return sorted(l, key=lambda x: x[0])
 
+def remove_macro(name, string):
+    return re.sub(f"\\\{name}"+"{([^}]*)}", '', string)
+def replace_macro(name, string, lhs = "", rhs = ""):
+    res,num = re.subn(f"\\\{name}"+"{([^}]*)}", r'\1', string)
+    if num >0: 
+        return lhs + res + rhs
+    return res
 def fix_string_formatting(s):
+    s = s.rstrip().replace("\n", "<br/>")
+    s = replace_macro("emph", s, "<em>", "</em>")
+    s = remove_macro("vspace", s)
     return (s
-        .rstrip()
-        .replace("\n", "<br/>")
         .replace('\LaTeX{}', "$\LaTeX$ ")
-        .replace("\\&", "&")
-        .replace("{", "")
-        .replace("}", "")
-        .replace("\em", "")
-        .replace("\sl", "")
-        .replace("\sf", "")
-        .replace("\sc", "")
-        .replace("\\bf", "")
-        .replace("\\tt", "")
-        .replace("\small", "")
-        .replace("\\vspace1mm", "")
-    )
+        .replace('\ldots', "$\ldots$ ")
+        .replace('\dots', "$\dots$ ")
+        .replace("\\&", "&"))
+        #.replace("\\vspace\{1mm\}", "")
+        #.replace("\\vspace\{0.5mm\}", ""))
+        #.replace('\mathscr', "\mathscr ")
+        #.replace("\em", "")
+        #.replace("\sl", "")
+        #.replace("\sf", "")
+        #.replace("\sc", "")
+        #.replace("\\bf", "")
+        #.replace("\\tt", "")
+        #.replace("\small", "")
 def get_song_body(body_list, archive):
     pargraph = 0
     text_t = get_template("text") # type, line, text
@@ -121,7 +138,7 @@ def get_song_body(body_list, archive):
         body += "\n"
     return body
 
-def generate_song(song_info, file_name, contents, archive):
+def generate_song(song_info, file_name, contents, counter, archive):
     if song_info == None:
         return False
     body_list = merge_lists(
@@ -132,6 +149,7 @@ def generate_song(song_info, file_name, contents, archive):
     song_body = get_song_body(body_list, archive)
     song_t = get_template("song")
     song = song_t.substitute(
+        num = counter.get_count(file_name),
         name = song_info[0],
         melody = "Melody - "+  song_info[1].replace("\n", "") if song_info[1] != "" else song_info[1],
         sbody = song_body
@@ -141,19 +159,35 @@ def generate_song(song_info, file_name, contents, archive):
         f.write(song)
     return True
 
+class Counter:
+    def __init__(self, order):
+        self.order = order
+        self.count = len(order)
+        self.last = 0
+    def get_count(self, file_name):
+        try:
+            self.last = (self.order.index(file_name) + 1)
+        except:
+            self.last = self.count
+            self.count += 1
+        return self.last
+
 def main():
     json_res = {}
     archive_path = os.path.join(os.getcwd(), 'sangbog-main.zip')
-    get_songbook(archive_path)
+    if (not os.path.isfile(archive_path)):
+        get_songbook(archive_path)
     with zipfile.ZipFile(archive_path, mode="r") as archive:
+        c = get_file_contents(archive, "sangbog-main/main.tex").decode('UTF-8')
+        counter = Counter(get_song_order(c))
         for info in archive.infolist():
             if info.filename.startswith("sangbog-main/sange"):
                 print(f"{info.filename}\n")
                 contents = get_file_contents(archive, info.filename).decode('UTF-8')
                 song_info = get_song_info(contents)
                 file_name = filename = info.filename.split("/")[-1].split(".")[0]
-                if generate_song(song_info, file_name, contents, archive):
-                    json_res[song_info[0]] = f"./songs/{file_name}.html"
+                if generate_song(song_info, file_name, contents, counter, archive):
+                    json_res[counter.last] = [song_info[0], f"./songs/{file_name}.html"]
     with open(os.path.join(os.path.curdir, 'pages', 'songbook', 'songs.json'), encoding="utf-8", mode="w") as f:
        f.write(json.dumps(json_res, ensure_ascii=False))
     os.remove(os.path.join(os.getcwd(), 'sangbog-main.zip'))
