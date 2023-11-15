@@ -204,3 +204,6 @@ sangbog
 build
 # Ignores images used in songs.
 media/songs 
+
+# Ignore python cache
+__pycache__
