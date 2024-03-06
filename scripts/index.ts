@@ -47,6 +47,10 @@ function toggle_sidebar() {
     else
         sidebar.classList.add('active');
 }
+function toggle_darkmode(){
+        let theme = document.body.classList.toggle("dark-theme")?  "dark" : "light";
+        localStorage.setItem("theme", theme);
+}
 
 /*
     Main function
@@ -79,6 +83,19 @@ void (() => {
         ?.forEach(node => {
             node.addEventListener('click', toggle_sidebar);
         });
+    /*
+        Dark Mode stuff
+    */
+    const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+    let currTheme = localStorage.getItem("theme");
+    if(currTheme === null) currTheme = prefersDarkScheme.matches ? "dark": "light";
+    if (currTheme=="dark"){
+        document.body.classList.toggle("dark-theme");
+    }
+    document.querySelectorAll('.darkmode-button')
+        ?.forEach(node=>{
+            node.addEventListener('click',toggle_darkmode);
+        })
 
     /*
         Connectivity checks
@@ -100,4 +117,6 @@ void (() => {
 
     stregsystem.init();
     events.init();
+
 })();
+
