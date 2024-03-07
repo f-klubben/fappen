@@ -18,6 +18,19 @@
   -webkit-user-select: none; /* Safari */
   user-select: none; /* Standard syntax */
 }
+:root:has(> .dark-theme){
+  --bg1: #101010;
+  --fg1: #181818;
+  --tba: #565656;
+  --tbb: #7a7a7a;
+  color: white;
+  .big-logo{
+    filter: invert(100%);
+  }
+  .access-status-indicator{
+    filter: invert(100%);
+  }
+}
 
 body {
   margin: 0;
@@ -95,6 +108,7 @@ aside {
   &.active {
     display: block;
     height: fit-content;
+    z-index: 1;
   }
 
   ul {
