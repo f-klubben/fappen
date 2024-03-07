@@ -1,3 +1,4 @@
+import os
 import zipfile
 import re
 import json
@@ -106,6 +107,7 @@ def get_song_body(body_list, archive):
                 f"sangbog-main/{el[3]}"
             )
             image_path = OUTPUT_IMAGE_PATH.joinpath(el[3].split("/")[1])
+            os.makedirs(os.path.dirname(image_path), exist_ok=True)
             abs_image_path = CWD.joinpath(image_path)
             with open(abs_image_path, mode="wb")as f:
                 f.write(image)
@@ -132,6 +134,7 @@ def generate_song(song_info, file_name, contents, counter, archive):
         sbody = song_body
     )
     path = OUTPUT_PATH.joinpath( file_name)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(f"{path}.pug", encoding="utf-8", mode="w") as f:
         f.write(song)
     return True
@@ -169,7 +172,7 @@ if __name__ == "__main__":
         c = get_file_contents(archive, "sangbog-main/main.tex").decode('UTF-8')
         counter = Counter(get_song_order(c))
         songs = list(filter(
-            lambda x: x.filename.startswith("sangbog-main/sange") and not x.is_dir(), 
+            lambda x: x.filename.startswith("sangbog-main/sange") and not x.is_dir(),
             archive.infolist())
         )
         song_count = len(songs)
@@ -189,4 +192,3 @@ if __name__ == "__main__":
         f.write(json.dumps(json_res, ensure_ascii=False))
     print("\rRemoving archive")
     CWD.joinpath(ARCHIVE_PATH).unlink()
-    
