@@ -22,9 +22,6 @@ jobs:
           repository: f-klubben/sangbog
           path: sangbog
 
-      - name: Install pandoc
-        uses: r-lib/actions/setup-pandoc@v2
-
       - name: Build songs
         run: python util/build_songs.py
 
