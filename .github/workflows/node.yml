@@ -36,3 +36,5 @@ jobs:
       - run: npm run build
       # Re-enable whenever tests are added
       #- run: npm test
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
