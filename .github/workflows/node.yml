@@ -1,0 +1,35 @@
+name: Node.js CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get Repo
+        uses: actions/checkout@v4
+
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Get Songbook
+        uses: actions/checkout@v3
+        with:
+          repository: f-klubben/sangbog
+          path: sangbog
+
+      - name: Build songs
+        run: python util/build_songs.py
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - run: npm i
+      - run: npm run build
+      # Re-enable whenever tests are added
+      #- run: npm test
