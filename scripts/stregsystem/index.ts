@@ -346,7 +346,7 @@ class FaStregCart extends HTMLElement {
      */
     compute_total(): number {
         return Object.keys(this.contents)
-            .map(id => this.owner.catalogue[id][1] * this.contents[id])
+            .map(id => this.owner.catalogue[id].price * this.contents[id])
             .reduce(reduce_sum, 0);
     }
 
@@ -485,10 +485,10 @@ class FaStregCartDialog extends HTMLElement {
                 const row = document.createElement('tr');
 
                 row.append(
-                    text(catalogue[id][0], 'td'), // name
+                    text(catalogue[id].name, 'td'), // name
                     text(count.toString(), 'td'), // count
-                    text(format_stregdollar(catalogue[id][1]), 'td'), // indv price
-                    text(format_stregdollar(catalogue[id][1] * count), 'td'), // total
+                    text(format_stregdollar(catalogue[id].price), 'td'), // indv price
+                    text(format_stregdollar(catalogue[id].price * count), 'td'), // total
                 );
 
                 return row;
