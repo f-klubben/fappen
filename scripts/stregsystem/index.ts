@@ -4,7 +4,7 @@ import config from "../../config";
 const {base_api_url, default_room, features} = config;
 
 import * as cli_backend from './cli_backend';
-import * as api_backend from './api_backend';
+import * as api_backend from './api_gen_backend';
 
 import access_failure_msg from 'bundle-text:../../components/stregsystem/access_failure.pug';
 import access_no_api from 'bundle-text:../../components/stregsystem/access_no_api.pug';
@@ -50,10 +50,10 @@ export interface SaleResponse {
 }
 
 export interface ActiveProductList {
-    [product_id: string]: [
-        string, // Product name
-        number, // Price
-    ]
+    [product_id: string]: {
+        name: string; // Product name
+        price: number; // Price
+    };
 }
 
 type BalanceChange = { old_balance: number, new_balance: number };
@@ -652,8 +652,8 @@ class FaStregsystem extends HTMLElement {
 
         this.catalogue = await backend.get_active_products(default_room);
         const product_elements = Object.keys(this.catalogue)
-            .map(key => new FaStregProduct(this.cart, parseInt(key), ...this.catalogue[key]));
-
+            .map(key => new FaStregProduct(this.cart, parseInt(key), this.catalogue[key].name, this.catalogue[key].price));
+        
         product_container.append(...product_elements);
 
         this.append(
