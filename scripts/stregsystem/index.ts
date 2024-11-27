@@ -653,7 +653,7 @@ class FaStregsystem extends HTMLElement {
         this.catalogue = await backend.get_active_products(default_room);
         const product_elements = Object.keys(this.catalogue)
             .map(key => new FaStregProduct(this.cart, parseInt(key), this.catalogue[key].name, this.catalogue[key].price));
-        
+
         product_container.append(...product_elements);
 
         this.append(
