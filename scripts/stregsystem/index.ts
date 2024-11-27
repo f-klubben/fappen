@@ -4,7 +4,7 @@ import config from "../../config";
 const {base_api_url, default_room, features} = config;
 
 import * as cli_backend from './cli_backend';
-import * as api_backend from './api_gen_backend';
+import * as api_backend from './api_backend';
 
 import access_failure_msg from 'bundle-text:../../components/stregsystem/access_failure.pug';
 import access_no_api from 'bundle-text:../../components/stregsystem/access_no_api.pug';
