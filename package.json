@@ -42,6 +42,7 @@
     "markdown-it-container": "^3.0.0",
     "pug": "^3.0.2",
     "pyodide": "^0.21.3",
+    "svgo": "^3.3.2",
     "tar": "^6.1.12"
   },
   "alias": {
