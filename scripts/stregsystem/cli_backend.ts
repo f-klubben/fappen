@@ -16,7 +16,7 @@ const decode_html_escapes = (src: string): string => {
     return html_decoder.innerText;
 }
 
-export const get_user_id = (username: string): Promise<number> => {
+export const get_member_id = (username: string): Promise<number> => {
     username = JSON.stringify(username);
     return py.run(`
     if user_mgr.user.username != ${username}:
@@ -32,7 +32,7 @@ const reg_firstname = /<td>Fornavn\(e\)<\/td>\s*<td>(.+)<\/td>/;
 const reg_lastname = /<td>Efternavn<\/td>\s*<td>(.+)<\/td>/;
 const reg_balance = /Du har ([0-9.]+) kroner til gode!/;
 // sts-cli does not implement a way to get a user from its id
-export const get_user_info = (user_id: number): Promise<any> =>
+export const get_member_info = (user_id: number): Promise<any> =>
     fetch(`${config.base_api_url}/../${config.default_room}/user/${user_id}`)
         .if(res => res.status === 200, async res => {
             const response_text = await res.text();
@@ -48,7 +48,7 @@ export const get_user_info = (user_id: number): Promise<any> =>
         })
         .else_then_promise(() => Promise.reject("Unable to get user info."))
 
-export const get_user_balance = (user_id: number): Promise<number> =>
+export const get_member_balance = (user_id: number): Promise<number> =>
     py.run(`
     if user_mgr.user.user_id != ${user_id}:
         user_mgr.user = await user_from_id(${user_id})
@@ -94,7 +94,7 @@ class CliHelper {
 
     @py.pyFn()
     static async user_from_id(id: number) {
-        const {username, balance} = await get_user_info(id);
+        const {username, balance} = await get_member_info(id);
         return {username, balance, user_id: id};
     }
 

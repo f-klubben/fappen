@@ -50,10 +50,10 @@ export interface SaleResponse {
 }
 
 export interface ActiveProductList {
-    [product_id: string]: [
-        string, // Product name
-        number, // Price
-    ]
+    [product_id: string]: {
+        name: string; // Product name
+        price: number; // Price
+    };
 }
 
 type BalanceChange = { old_balance: number, new_balance: number };
@@ -69,19 +69,19 @@ export interface Backend {
      * Gets the id that corresponds to a given username.
      * @param username
      */
-    get_user_id(username: string): Promise<number>;
+    get_member_id(username: string): Promise<number>;
 
     /**
      * Gets the user information associated with the given user id.
      * @param user_id
      */
-    get_user_info(user_id: number): Promise<any>;
+    get_member_info(user_id: number): Promise<any>;
 
     /**
      * Get the current balance of the given user by id.
      * @param user_id
      */
-    get_user_balance(user_id: number): Promise<number>;
+    get_member_balance(user_id: number): Promise<number>;
 
     /**
      * Get a list of products that are active within a given room.
@@ -137,8 +137,8 @@ export const check_access = (): Promise<AccessStatus> =>
  * @param username
  */
 export const fetch_profile = async (username: string): Promise<UserProfile> => {
-    const user_id = await backend.get_user_id(username);
-    const {name, active, balance} = await backend.get_user_info(user_id);
+    const user_id = await backend.get_member_id(username);
+    const {name, active, balance} = await backend.get_member_info(user_id);
 
     return {
         username, id: user_id,
@@ -222,7 +222,7 @@ class FaStregProduct extends HTMLElement {
             enable_loading_indicator(true);
             try {
                 await backend.post_sale(`${profile.username} ${this.product_id}`, default_room, profile.id);
-                const new_balance = await backend.get_user_balance(profile.id);
+                const new_balance = await backend.get_member_balance(profile.id);
                 events.profile_balance_change.dispatch({old_balance: profile.balance, new_balance});
             } catch (err) {
                 alert("Purchase failed.");
@@ -307,7 +307,7 @@ class FaStregCart extends HTMLElement {
         enable_loading_indicator(true);
         try {
             await backend.post_sale(buy_string, default_room, profile.id);
-            const new_balance = await backend.get_user_balance(profile.id);
+            const new_balance = await backend.get_member_balance(profile.id);
             events.profile_balance_change.dispatch({old_balance: profile.balance, new_balance});
             this.contents = {};
             this.update();
@@ -346,7 +346,7 @@ class FaStregCart extends HTMLElement {
      */
     compute_total(): number {
         return Object.keys(this.contents)
-            .map(id => this.owner.catalogue[id][1] * this.contents[id])
+            .map(id => this.owner.catalogue[id].price * this.contents[id])
             .reduce(reduce_sum, 0);
     }
 
@@ -485,10 +485,10 @@ class FaStregCartDialog extends HTMLElement {
                 const row = document.createElement('tr');
 
                 row.append(
-                    text(catalogue[id][0], 'td'), // name
+                    text(catalogue[id].name, 'td'), // name
                     text(count.toString(), 'td'), // count
-                    text(format_stregdollar(catalogue[id][1]), 'td'), // indv price
-                    text(format_stregdollar(catalogue[id][1] * count), 'td'), // total
+                    text(format_stregdollar(catalogue[id].price), 'td'), // indv price
+                    text(format_stregdollar(catalogue[id].price * count), 'td'), // total
                 );
 
                 return row;
@@ -575,7 +575,7 @@ class FaProfileWidget extends HTMLElement {
     }
 
     async update_balance(now: number) {
-        const balance = await backend.get_user_balance(this.profile.id);
+        const balance = await backend.get_member_balance(this.profile.id);
         last_balance_bg_update = now;
         await AppDatabase.instance.settings.put(now, AppDatabase.balance_update_time_key);
         events.profile_balance_change.dispatch({old_balance: this.profile.balance, new_balance: balance})
@@ -652,7 +652,7 @@ class FaStregsystem extends HTMLElement {
 
         this.catalogue = await backend.get_active_products(default_room);
         const product_elements = Object.keys(this.catalogue)
-            .map(key => new FaStregProduct(this.cart, parseInt(key), ...this.catalogue[key]));
+            .map(key => new FaStregProduct(this.cart, parseInt(key), this.catalogue[key].name, this.catalogue[key].price));
 
         product_container.append(...product_elements);
 
