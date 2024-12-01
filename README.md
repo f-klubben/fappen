@@ -15,6 +15,29 @@ Running the project:
 ```bash  
 npm install     # Installs dependencies  
 npm start       # Builds the project and starts a local server  
-```  
-  
-To just build the project run `npm run build`.
+```
+
+## Build
+
+To simply build locally, just run `npm run build`.
+
+### Generate release
+The following guide is for generating a release on Ubuntu 22.
+
+#### Prerequisites
+- Node (>= v17)
+- Python (>= 3.10.x)
+- An Internet connection (>= Dial-up)
+- Possibly: `coreutils` for Node
+
+#### Steps
+1. `npm install`
+2. `python3 util/build_songs.py`
+3. `./setup build live -p release`
+
+#### Troubleshooting
+Generally, try to do things twice.
+
+##### `Error: Unable to deserialize cloned data due to invalid or unsupported version.`
+
+Solution: Try clear parcel cache: `rm -rf .parcel-cache/`
