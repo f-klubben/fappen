@@ -1,6 +1,6 @@
 import {promise_cond} from "../util/async";
 import config from "../../config";
-import {SaleResponse, ActiveProductList} from "./index";
+import {SaleResponse, ActiveProductList, Sale} from "./index";
 
 const {base_api_url} = config;
 
@@ -23,6 +23,11 @@ export const get_member_balance = (user_id: number): Promise<number> =>
 
 export const get_active_products = (room_id: number): Promise<ActiveProductList> =>
     fetch(`${base_api_url}/products/active_products?room_id=${room_id}`)
+        .then(res => promise_cond(res.status === 200, res, res))
+        .then(res => res.json());
+
+export const get_member_sales = (user_id: number): Promise<[Sale]> =>
+    fetch(`${base_api_url}/member/sales?member_id=${user_id}`)
         .then(res => promise_cond(res.status === 200, res, res))
         .then(res => res.json());
 
