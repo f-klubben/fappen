@@ -570,6 +570,7 @@ class FaProfile extends HTMLElement {
         events.profile_loaded.register_handle(this.on_profile_load, this);
         events.profile_balance_change.register_handle(this.on_balance_change, this);
         events.profile_sales_change.register_handle(this.on_get_sales, this);
+        events.ready.register_handle(this.on_ready, this);
         this.balance = document.createElement("h2");
         this.username = document.createElement("h2");
         this.sales = document.createElement("table");
@@ -588,6 +589,12 @@ class FaProfile extends HTMLElement {
             div
         );
     }
+    on_ready() {
+        if (this.profile == null) {
+            window.location.pathname = "/stregsystem.html"
+        }
+    }
+    
     on_profile_load(profile: UserProfile) {
         this.profile = profile;
         console.log(profile)
