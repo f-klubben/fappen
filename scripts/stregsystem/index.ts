@@ -542,8 +542,21 @@ class FaStregCartDialog extends HTMLElement {
 }
 
 class FaLogout extends HTMLElement {
+    profile: UserProfile;
     constructor() {
         super();
+        events.ready.register_handle(this.on_ready, this);
+        events.profile_loaded.register_handle(this.on_profile_load, this);
+    }
+    on_ready() {
+        if (this.profile == null) {
+            this.innerHTML = ""
+        } else {
+            this.render_button()
+        }
+    }
+    render_button(){
+        this.innerHTML = ""
         let button = document.createElement("button");
         button.onclick = () => {
             this.logout()
@@ -552,6 +565,10 @@ class FaLogout extends HTMLElement {
         this.append(
             button
         );
+    }
+    on_profile_load(profile: UserProfile) {
+        this.profile = profile;
+        this.render_button()
     }
     async logout() {
         await AppDatabase.instance.settings.delete("profile.active");
