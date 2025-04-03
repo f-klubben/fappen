@@ -615,7 +615,7 @@ class FaProfile extends HTMLElement {
     on_profile_load(profile: UserProfile) {
         this.profile = profile;
         console.log(profile)
-        this.username.textContent = "Welcome " + profile.name + " (" + profile.username + ")";
+        this.username.textContent = "Velkommen " + profile.name + " (" + profile.username + ")";
         this.balance.textContent = "Du har " + format_stregdollar(profile.balance) + " til gode!";
         this.get_member_sales()
          
