@@ -29,7 +29,7 @@ jobs:
           if ! python util/build_songs.py; then
             echo "Build songs failed — creating empty file as fallback."
             mkdir -p build/dist
-            touch pages/songbook/songs.json
+            echo "{}" > pages/songbook/songs.json
           fi
       
       #- name: Build songs
