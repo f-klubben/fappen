@@ -3,6 +3,7 @@
   "source": "pages/index.pug",
   "scripts": {
     "start": "parcel pages/index.pug pages/songbook/songs/*.pug --dist-dir build/dist",
+    "build-songs": "python util/build_songs.py",
     "build": "parcel build pages/index.pug pages/songbook/songs/*.pug --dist-dir build/dist",
     "cors-proxy": "node cors-proxy.js"
   },
