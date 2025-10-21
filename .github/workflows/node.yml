@@ -27,14 +27,11 @@ jobs:
           set -e
           echo "Building songs..."
           if ! python util/build_songs.py; then
-            echo "Build songs failed — creating empty file as fallback."
+            echo "GITHUB WORKFLOW: Build songs failed — creating empty file as fallback."
             mkdir -p build/dist
             echo "{}" > pages/songbook/songs.json
           fi
       
-      #- name: Build songs
-      #run: python util/build_songs.py
-
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
