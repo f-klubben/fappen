@@ -39,3 +39,9 @@ jobs:
       - run: npm run build
       # Re-enable whenever tests are added
       #- run: npm test
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend
+          path: build/dist
