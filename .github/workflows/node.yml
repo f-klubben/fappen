@@ -45,13 +45,3 @@ jobs:
         with:
           name: frontend
           path: build/dist
-
-  deploy:
-    name: Deploy 🚀
-    uses: ./.github/workflows/deploy.yml
-    if: ${{ always() && !cancelled() && github.event_name == 'pull_request' && needs.build.result == 'success' && github.repository == 'f-klubben/fappen' }}
-    needs:
-      - build
-    permissions:
-      contents: read
-      deployments: write
