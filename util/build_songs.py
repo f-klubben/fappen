@@ -17,14 +17,9 @@ ARCHIVE_PATH = Path(".").joinpath("sangbog-main.zip")
 JSON_PATH = CWD.joinpath("pages", "songbook", "songs.json")
 ### EXTRACTING PART ###
 
-def reporthook(count, _, total_size):
-    percent = ((count*8192)/total_size)*100
-    sys.stdout.write("\rDownloading songbook %d%%" % (percent))
-    sys.stdout.flush()
-
 def get_songbook(file_path):
     url = 'https://github.com/f-klubben/sangbog/archive/master.zip'
-    urlretrieve(url, file_path, reporthook)
+    urlretrieve(url, file_path)
     print("")
     return file_path
 
@@ -169,7 +164,7 @@ if __name__ == "__main__":
     if (not ARCHIVE_PATH.exists()):
         get_songbook(ARCHIVE_PATH)
     with zipfile.ZipFile(ARCHIVE_PATH, mode="r") as archive:
-        c = get_file_contents(archive, "sangbog-main/main.tex").decode('UTF-8')
+        c = get_file_contents(archive, "sangbog-main/booklet/main.tex").decode('UTF-8')
         counter = Counter(get_song_order(c))
         songs = list(filter(
             lambda x: x.filename.startswith("sangbog-main/sange") and not x.is_dir(),
