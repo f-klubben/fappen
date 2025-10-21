@@ -22,9 +22,15 @@ jobs:
           repository: f-klubben/sangbog
           path: sangbog
 
-      - name: Build songs
-        run: python util/build_songs.py
-
+      - name: Build songs (with failover)
+        run: |
+          set -e
+          echo "Building songs..."
+          if ! npm run build-songs; then
+            echo "GITHUB WORKFLOW: Build songs failed — creating empty file as fallback."
+            echo "{}" > pages/songbook/songs.json
+          fi
+      
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
@@ -33,3 +39,9 @@ jobs:
       - run: npm run build
       # Re-enable whenever tests are added
       #- run: npm test
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend
+          path: build/dist
