@@ -57,6 +57,7 @@ export const get_member_balance = (user_id: number): Promise<number> =>
     user_mgr.get_balance() * 100
     `);
 
+
 export const get_active_products = async (room_id: number): Promise<ActiveProductList> => {
     const py_products = await py.run(`
     sts.update_products()
