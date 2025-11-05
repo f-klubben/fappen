@@ -17,58 +17,19 @@ ARCHIVE_PATH = Path(".").joinpath("sangbog-main.zip")
 JSON_PATH = CWD.joinpath("pages", "songbook", "songs.json")
 ### EXTRACTING PART ###
 
+### EXTRACTING PART ###
 def get_songbook(file_path):
+    # Change into new artifact file: songs.json
     url = 'https://github.com/f-klubben/sangbog/archive/master.zip'
     urlretrieve(url, file_path)
     print("")
-    return file_path
+    return JSON_PATH
 
 def get_file_contents(archive, path):
     contents = ""
     with archive.open(path, mode="r") as data:
         contents = data.read()
     return contents
-
-def get_song_info(content):
-    reg = re.compile(r"\\begin\{sang\}\{([^\}]*)\}\{([^\}]*)\}")
-    match = reg.match(content)
-    if match != None:
-        return (
-            match.group(1).capitalize(), 
-            match.group(2).replace("\\ldots", "…").replace("Melodi - ", "").replace("Melodi:", "").lstrip().capitalize()
-        )
-
-def get_verses(content):
-    matches = re.compile(r"(?s)\\begin\{vers\}\s?(.*?)\\end\{vers\}", re.MULTILINE|re.DOTALL)
-    res = []
-    for match in matches.finditer(content):
-        start = content[0:match.start()].count("\n")
-        res.append((start, "v",match.group(1)))
-    return res
-
-def get_choruses(content):
-    matches = re.compile(r"\\begin\{omkvaed\}\[?\w?\]?\s*([^\\]*)", re.MULTILINE|re.DOTALL)
-    res = []
-    for match in matches.finditer(content):
-        start = content[0:match.start()].count("\n")
-        res.append((start,"c", match.group(1)))
-    return res
-
-def get_images(content):
-    matches = re.compile(r"\\includegraphics\s*\[width=(\d*.\d)\\*\w*\]\{([^\}]*)\}", re.MULTILINE|re.DOTALL)
-    res = []
-    for match in matches.finditer(content):
-        start = content[0:match.start()].count("\n")
-        res.append((start, "i", match.group(1),match.group(2).replace(".eps", ".png")))
-    return res
-
-def get_song_order(content):
-    matches = re.compile(r"\\input\{([^\}]*)\/([^.}]*)(.tex|\})", re.MULTILINE|re.DOTALL)
-    res = []
-    for match in matches.finditer(content):
-        start = content[0:match.start()].count("\n")
-        res.append(match.group(2))
-    return res
 
 def get_template(name):
     contents = ""
@@ -115,11 +76,7 @@ def get_song_body(body_list, archive):
 def generate_song(song_info, file_name, contents, counter, archive):
     if song_info == None:
         return False
-    body_list = merge_lists(
-        get_verses(contents),
-        get_choruses(contents),
-        get_images(contents),
-    )
+    body_list = None # ... Read from JSON
     song_body = get_song_body(body_list, archive)
     song_t = get_template("song")
     song = song_t.substitute(
@@ -138,13 +95,6 @@ def img2b64(path):
     with open(path, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read())
     return encoded_string
-
-def merge_lists(v, c, i):
-    l = []
-    l.extend(v)
-    l.extend(c)
-    l.extend(i)
-    return sorted(l, key=lambda x: x[0])
 
 class Counter:
     def __init__(self, order):
