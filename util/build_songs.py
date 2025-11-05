@@ -73,8 +73,8 @@ def generate_song(song_index, song_info, file_name):
     song_t = get_template("song")
     song = song_t.substitute(
         num = song_index,
-        name = song_info[0],
-        melody = "Melody - "+  song_info[1].replace("\n", "") if song_info[1] != "" else song_info[1],
+        name = song_info['title'],
+        melody = "Melody - " + song_info['melody'].replace("\n", "") if song_info['melody'] != "" else "",
         sbody = song_body
     )
     path = OUTPUT_PATH.joinpath( file_name)
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         percent = (count/song_count)*100
         sys.stdout.write("\rGenerating songbook %d%%" % (percent))
         sys.stdout.flush()
-        file_name = songs[index][3].split("/")[-1].split(".")[0]
+        file_name = songs[index]['path'].split("/")[-1].split(".")[0]
         if generate_song(index, songs[index], file_name):
             json_res[index] = [songs[index][0], f"./songs/{file_name}.html"]
 
