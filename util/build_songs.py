@@ -51,7 +51,7 @@ def get_song_body(body_list):
                 text = tex_to_html(el[2])
             )
         elif el[1] == "i":
-            image_path = OUTPUT_IMAGE_PATH.joinpath(el[3].split("/")[1])
+            image_path = OUTPUT_IMAGE_PATH.joinpath(el[3].split("/")[-1])
             os.makedirs(os.path.dirname(image_path), exist_ok=True)
             abs_image_path = CWD.joinpath(image_path)
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         sys.stdout.flush()
         file_name = songs[index]['path'].split("/")[-1].split(".")[0]
         if generate_song(index, songs[index], file_name):
-            json_res[index] = [songs[index][0], f"./songs/{file_name}.html"]
+            json_res[index] = [songs[index]['title'], f"./songs/{file_name}.html"]
 
     print("\n\rWriting to json")
     with open(JSON_PATH, encoding="utf-8", mode="w") as f:
