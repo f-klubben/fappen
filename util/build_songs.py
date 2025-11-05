@@ -30,7 +30,7 @@ def get_template(name):
         contents = data.read()
     return Template(contents)
 
-def get_song_body(body_list, archive):
+def get_song_body(body_list):
     pargraph = 0
     text_t = get_template("text") # type, line, text
     image_t = get_template("image") # b64image
@@ -65,14 +65,14 @@ def get_song_body(body_list, archive):
         body += "\n"
     return body
 
-def generate_song(song_info, file_name, contents, counter, archive):
+def generate_song(song_index, song_info, file_name):
     if song_info == None:
         return False
-    body_list = None # ... Read from JSON
-    song_body = get_song_body(body_list, archive)
+    body_list = song_info['body']
+    song_body = get_song_body(body_list)
     song_t = get_template("song")
     song = song_t.substitute(
-        num = counter.get_count(file_name),
+        num = song_index,
         name = song_info[0],
         melody = "Melody - "+  song_info[1].replace("\n", "") if song_info[1] != "" else song_info[1],
         sbody = song_body
@@ -103,29 +103,18 @@ class Counter:
 
 if __name__ == "__main__":
     json_res = {}
-    if (not ARCHIVE_PATH.exists()):
-        get_songbook(ARCHIVE_PATH)
-    with zipfile.ZipFile(ARCHIVE_PATH, mode="r") as archive:
-        c = get_file_contents(archive, "sangbog-main/booklet/main.tex").decode('UTF-8')
-        counter = Counter(get_song_order(c))
-        songs = list(filter(
-            lambda x: x.filename.startswith("sangbog-main/sange") and not x.is_dir(),
-            archive.infolist())
-        )
-        song_count = len(songs)
-        count = 0
-        for info in songs:
-            count +=1
-            percent = (count/song_count)*100
-            sys.stdout.write("\rGenerating songbook %d%%" % (percent))
-            sys.stdout.flush()
-            contents = get_file_contents(archive, info.filename).decode('UTF-8')
-            song_info = get_song_info(contents)
-            file_name = filename = info.filename.split("/")[-1].split(".")[0]
-            if generate_song(song_info, file_name, contents, counter, archive):
-                json_res[counter.last] = [song_info[0], f"./songs/{file_name}.html"]
+    songs = get_songbook_artifact("songs.json")
+    song_count = len(songs)
+    count = 0
+    for index in songs:
+        count += 1
+        percent = (count/song_count)*100
+        sys.stdout.write("\rGenerating songbook %d%%" % (percent))
+        sys.stdout.flush()
+        file_name = songs[index][3].split("/")[-1].split(".")[0]
+        if generate_song(index, songs[index], file_name):
+            json_res[index] = [songs[index][0], f"./songs/{file_name}.html"]
+
     print("\n\rWriting to json")
     with open(JSON_PATH, encoding="utf-8", mode="w") as f:
         f.write(json.dumps(json_res, ensure_ascii=False))
-    print("\rRemoving archive")
-    CWD.joinpath(ARCHIVE_PATH).unlink()
