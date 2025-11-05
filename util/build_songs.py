@@ -1,11 +1,10 @@
 import os
-import zipfile
-import re
 import json
 import sys
 from urllib.request import urlretrieve
 from string import Template
 from pathlib import Path
+import base64
 
 ### LOCAL IMPORTS
 from tex_to_html import tex_to_html
@@ -13,23 +12,17 @@ CWD = Path.cwd()
 OUTPUT_IMAGE_PATH = Path(".").joinpath("media","songs")
 OUTPUT_PATH = Path(".").joinpath("pages", "songbook", "songs")
 TEMPALTE_PATH = CWD.joinpath("util","template")
-ARCHIVE_PATH = Path(".").joinpath("sangbog-main.zip")
 JSON_PATH = CWD.joinpath("pages", "songbook", "songs.json")
 ### EXTRACTING PART ###
 
 ### EXTRACTING PART ###
-def get_songbook(file_path):
-    # Change into new artifact file: songs.json
-    url = 'https://github.com/f-klubben/sangbog/archive/master.zip'
+def get_songbook_artifact(file_path):
+    url = 'https://github.com/f-klubben/sangbog/releases/latest/download/songs.json'
     urlretrieve(url, file_path)
-    print("")
-    return JSON_PATH
-
-def get_file_contents(archive, path):
-    contents = ""
-    with archive.open(path, mode="r") as data:
-        contents = data.read()
-    return contents
+    songbook_json_string = "{}"
+    with open(file_path, "rb") as file:
+        songbook_json_string = file.read().decode('UTF-8')
+    return json.loads(songbook_json_string)
 
 def get_template(name):
     contents = ""
@@ -57,14 +50,13 @@ def get_song_body(body_list, archive):
                 line = pargraph, 
                 text = tex_to_html(el[2])
             )
-        elif el[1] == "i": 
-            image = get_file_contents(
-                archive,
-                f"sangbog-main/{el[3]}"
-            )
+        elif el[1] == "i":
             image_path = OUTPUT_IMAGE_PATH.joinpath(el[3].split("/")[1])
             os.makedirs(os.path.dirname(image_path), exist_ok=True)
             abs_image_path = CWD.joinpath(image_path)
+
+            image = base64.decodebytes(el[4].encode('utf-8'))
+
             with open(abs_image_path, mode="wb")as f:
                 f.write(image)
             body += image_t.substitute(
