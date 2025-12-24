@@ -25,6 +25,18 @@ html(lang="en")
             if show_load_indicator
                 #loading-indicator.spinner
                     img(width="200" src="/media/fstjerne.svg")
+            #media_control
+                #play
+                #pause
+                #progress_bg
+                #progress
+                #progress_indicator
+                #duration 00:00:00
+
+            #media_info
+                #media_title
+                #media_subtitle
+                #media_desc
             block content
             if hide_frit_fit !== true
                 p.frit-fit #fritfit (for real)
