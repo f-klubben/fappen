@@ -1,0 +1,213 @@
+// ten-foot.scss
+// Variables
+$primary-gradient-start: #1a1a2e;
+$primary-gradient-end: #16213e;
+$text-color: #ffffff;
+$card-bg: rgba(255, 255, 255, 0.1);
+$card-bg-hover: rgba(255, 255, 255, 0.15);
+$card-border: rgba(255, 255, 255, 0.2);
+$card-border-hover: rgba(255, 255, 255, 0.4);
+$focus-color: #00d4ff;
+
+// Mixins
+@mixin card-shadow {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+@mixin text-shadow {
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+@mixin smooth-transition($properties: all, $duration: 0.3s) {
+  transition: $properties $duration ease;
+}
+
+// Reset
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+// Body
+body {
+  background: linear-gradient(135deg, $primary-gradient-start 0%, $primary-gradient-end 100%);
+  color: $text-color;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 4rem;
+}
+
+// Loading Indicator
+#loading-indicator {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+
+  &.spinner {
+    animation: spin 2s linear infinite;
+  }
+
+  img {
+    width: 200px;
+    height: 200px;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+// Header
+header {
+  margin-bottom: 4rem;
+
+  h1 {
+    font-size: 5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    @include text-shadow;
+  }
+
+  .subtitle {
+    font-size: 2.5rem;
+    opacity: 0.8;
+    font-weight: 300;
+  }
+}
+
+// Service Grid
+.service-links {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 3rem;
+  margin-bottom: 4rem;
+}
+
+.service-card {
+  background: $card-bg;
+  backdrop-filter: blur(10px);
+  border-radius: 2rem;
+  padding: 3rem;
+  @include smooth-transition;
+  border: 2px solid $card-border;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  &:hover,
+  &:focus {
+    transform: scale(1.05);
+    background: $card-bg-hover;
+    border-color: $card-border-hover;
+    @include card-shadow;
+  }
+
+  .service-icon {
+    font-size: 6rem;
+    margin-bottom: 2rem;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  }
+
+  .service-title {
+    font-size: 3rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+
+  .service-description {
+    font-size: 1.8rem;
+    opacity: 0.9;
+    line-height: 1.6;
+  }
+}
+
+// Cast Media Player
+cast-media-player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 150px;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(20px);
+  display: none;
+
+  &.active {
+    display: block;
+  }
+}
+
+// Footer
+.frit-fit {
+  text-align: center;
+  font-size: 2rem;
+  opacity: 0.6;
+  padding: 2rem;
+  margin-top: auto;
+}
+
+// Focus indicators for accessibility
+*:focus {
+  outline: 4px solid $focus-color;
+  outline-offset: 4px;
+}
+
+// Navigation hint
+.nav-hint {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  font-size: 1.5rem;
+  opacity: 0.5;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+
+  kbd {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-family: monospace;
+    font-size: 1.3rem;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 1200px) {
+  main {
+    padding: 2rem;
+  }
+
+  header {
+    h1 {
+      font-size: 3.5rem;
+    }
+
+    .subtitle {
+      font-size: 2rem;
+    }
+  }
+
+  .service-links {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}

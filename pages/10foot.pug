@@ -1,0 +1,28 @@
+extends ../components/base_layout_10foot
+
+block title
+    h1 Welcome
+        .subtitle Select a service to continue
+
+block content
+    +vspace("25px")
+    section.service-links.border-outer
+        a.service-card(tabindex="0" role="button" href=navigation[key])
+            .service-icon 📺
+            .service-title Live TV
+            .service-description Watch live channels and broadcasts
+
+        .service-card(tabindex="1" role="button" data-service="movies")
+            .service-icon 🎬
+            .service-title Movies
+            .service-description Browse our collection of films
+
+        .service-card(tabindex="2" role="button" data-service="tvshows")
+            .service-icon 📺
+            .service-title TV Shows
+            .service-description Stream your favorite series
+
+        .service-card(tabindex="3" role="button" data-service="settings")
+            .service-icon ⚙️
+            .service-title Settings
+            .service-description Customize your experience

@@ -1,0 +1,47 @@
+include core
+
+block pug_meta
+
+- const title = typeof page_title === 'string' ? `${page_title} - ${app_name}` : app_name;
+
+doctype html
+html(lang="en")
+    +head(title)
+        link(rel="stylesheet" href="/styles/tenfoot.scss")
+    body
+        main
+            +vspace("25px")
+            img.big-logo(src="/media/flogo.svg" height="200")
+            +vspace("25px")
+            header
+                block title
+
+            if show_load_indicator
+                #loading-indicator.spinner
+                    img(width="200" src="/media/fstjerne.svg")
+
+            header.header-with-logo
+                .logo-title-container
+                    .logo-wrapper
+                        img.logo(src="/media/fstjerne.svg" alt="Logo")
+                    .title-wrapper
+                        h1= app_name || 'Welcome'
+                        .subtitle Select a service to continue
+
+            cast-media-player
+            block content
+            if hide_frit_fit !== true
+                p.frit-fit #fritfit (for real)
+
+            .nav-hint
+                span Navigate with
+                kbd ↑
+                kbd ↓
+                kbd ←
+                kbd →
+                kbd Enter
+
+        +scripts
+            script(type="module" src="/scripts/tenfoot-navigation.js")
+            script(type="module" src="/scripts/chromecast-receiver.js")
+            block scripts
