@@ -10,7 +10,8 @@ module.exports = {
             Songbook: "/pages/songbook/index.pug",
             Events: "/pages/events.pug",
             Links: "/pages/links.pug",
-            Offline: "/pages/offline.pug"
+            Offline: "/pages/offline.pug",
+            TenFoot: "/pages/10foot.pug"
         },
         links: {
             Slack: "https://fklubben.slack.com",
