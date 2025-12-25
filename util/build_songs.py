@@ -12,15 +12,17 @@ CWD = Path.cwd()
 OUTPUT_IMAGE_PATH = Path(".").joinpath("media","songs")
 OUTPUT_PATH = Path(".").joinpath("pages", "songbook", "songs")
 TEMPALTE_PATH = CWD.joinpath("util","template")
-JSON_PATH = CWD.joinpath("pages", "songbook", "songs.json")
+JSON_OUTPUT_PATH = CWD.joinpath("pages", "songbook", "song_index.json")
+SONGBOOK_ARTIFACT_URL = 'https://github.com/f-klubben/sangbog/releases/latest/download/songs.json'
 ### EXTRACTING PART ###
 
 ### EXTRACTING PART ###
-def get_songbook_artifact(file_path):
-    url = 'https://github.com/f-klubben/sangbog/releases/latest/download/songs.json'
-    urlretrieve(url, file_path)
+def get_songbook_artifact():
+    url = SONGBOOK_ARTIFACT_URL
+    temp_path = "songs.json"
+    urlretrieve(url, temp_path)
     songbook_json_string = "{}"
-    with open(file_path, "rb") as file:
+    with open(temp_path, "rb") as file:
         songbook_json_string = file.read().decode('UTF-8')
     return json.loads(songbook_json_string)
 
@@ -103,7 +105,7 @@ class Counter:
 
 if __name__ == "__main__":
     json_res = {}
-    songs = get_songbook_artifact("songs.json")
+    songs = get_songbook_artifact()
     song_count = len(songs)
     count = 0
     for index in songs:
@@ -116,5 +118,5 @@ if __name__ == "__main__":
             json_res[index] = [songs[index]['title'], f"./songs/{file_name}.html"]
 
     print("\n\rWriting to json")
-    with open(JSON_PATH, encoding="utf-8", mode="w") as f:
+    with open(JSON_OUTPUT_PATH, encoding="utf-8", mode="w") as f:
         f.write(json.dumps(json_res, ensure_ascii=False))

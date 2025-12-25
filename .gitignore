@@ -195,7 +195,8 @@ config.dev.ts
 
 # Ignore songs (we don't want them in tree)
 pages/songbook/songs
-pages/songbook/songs.json
+pages/songbook/song_index.json
+songs.json
 
 venv
 package-lock.json

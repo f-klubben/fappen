@@ -1,5 +1,5 @@
 // @ts-ignore
-import songs from "../pages/songbook/songs.json";
+import songs from "../pages/songbook/song_index.json";
 import {string_to_array, similiarity} from "../scripts/util/search";
 import {debounce} from "../scripts/util/common";
 
