@@ -1,4 +1,3 @@
-// ten-foot-navigation.js
 // Keyboard navigation for 10-foot interface
 
 class TenFootNavigator {
@@ -26,14 +25,8 @@ class TenFootNavigator {
         }
     }
 
-    getColumns() {
-        return window.innerWidth > 1200 ? Math.min(3, this.cards.length) : 1;
-    }
-
     setupKeyboardNavigation() {
         document.addEventListener('keydown', (e) => {
-            const cols = this.getColumns();
-
             switch(e.key) {
                 case 'ArrowRight':
                     e.preventDefault();
@@ -43,16 +36,6 @@ class TenFootNavigator {
                 case 'ArrowLeft':
                     e.preventDefault();
                     this.focusCard((this.currentIndex - 1 + this.cards.length) % this.cards.length);
-                    break;
-
-                case 'ArrowDown':
-                    e.preventDefault();
-                    this.focusCard(Math.min(this.currentIndex + cols, this.cards.length - 1));
-                    break;
-
-                case 'ArrowUp':
-                    e.preventDefault();
-                    this.focusCard(Math.max(this.currentIndex - cols, 0));
                     break;
 
                 case 'Enter':
@@ -84,6 +67,12 @@ class TenFootNavigator {
             // Track focus changes
             card.addEventListener('focus', () => {
                 this.currentIndex = index;
+
+                card.scrollIntoView({
+                    behavior: 'smooth',
+                    inline: 'center',
+                    block: 'nearest'
+                });
             });
         });
     }
@@ -100,16 +89,6 @@ class TenFootNavigator {
         }
     }
 }
-
-document.querySelectorAll('.service-card').forEach(card => {
-    card.addEventListener('focus', () => {
-        card.scrollIntoView({
-            behavior: 'smooth',
-            inline: 'center',
-            block: 'nearest'
-        });
-    });
-});
 
 
 // Initialize when DOM is ready
