@@ -35,24 +35,26 @@ html {
   color: $text-color;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   overflow-x: hidden;
-}
-
-main {
   max-height: 100vh;
   display: flex;
-  flex-direction: row;
-  padding: 4rem;
+  flex-direction: column;
+}
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  //padding: 4rem;
 }
 
 // Header with logo
 .header-with-logo {
-  margin-bottom: 2rem;
+  padding: 1.5rem;
 
   .logo-title-container {
     display: flex;
     align-items: center;
     gap: 2rem;
-    margin-bottom: 3rem;
   }
 
   .logo-wrapper {
@@ -76,7 +78,6 @@ main {
     h1 {
       font-size: 3rem;
       font-weight: 700;
-      margin-bottom: 0.5rem;
       @include text-shadow;
       line-height: 1.2;
     }
@@ -119,7 +120,6 @@ main {
 
 // Header
 header {
-  margin-bottom: 3rem;
   height: auto !important;
 
   h1 {
@@ -140,17 +140,17 @@ header {
 .service-container {
   flex: 1;
   display: flex;
-  position: fixed;
+  overflow-x: auto;
+  overflow-y: visible;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 3rem;
-  margin-bottom: 4rem;
 }
 
 .service-card {
   background: $card-bg;
   backdrop-filter: blur(10px);
   border-radius: 2rem;
-  padding: 3rem;
+  padding: 3em;
   @include smooth-transition;
   border: 2px solid $card-border;
   cursor: pointer;
@@ -158,6 +158,9 @@ header {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  font-size: clamp(0.1rem, 1vw, 6rem);
+  margin-bottom: 2rem;
+  margin-top: 2rem;
 
   &:hover,
   &:focus {
@@ -168,19 +171,19 @@ header {
   }
 
   .service-icon {
-    font-size: 6rem;
+    font-size: 6em;
     margin-bottom: 2rem;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
   }
 
   .service-title {
-    font-size: 3rem;
+    font-size: 3em;
     font-weight: 600;
     margin-bottom: 1.5rem;
   }
 
   .service-description {
-    font-size: 1.8rem;
+    font-size: 1.8em;
     opacity: 0.9;
     line-height: 1.6;
   }
