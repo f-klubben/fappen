@@ -1,13 +1,20 @@
 // Keyboard navigation for 10-foot interface
 
+interface ServiceSelected {
+    service: string;
+}
+
 class TenFootNavigator {
+    private cards: NodeListOf<HTMLElement>;
+    private currentIndex: number;
+
     constructor() {
-        this.cards = document.querySelectorAll('.service-card');
+        this.cards = document.querySelectorAll<HTMLElement>('.service-card');
         this.currentIndex = 0;
         this.init();
     }
 
-    init() {
+    private init(): void {
         this.setupKeyboardNavigation();
         this.setupClickHandlers();
         this.handleLoading();
@@ -18,15 +25,15 @@ class TenFootNavigator {
         }
     }
 
-    focusCard(index) {
+    private focusCard(index: number): void {
         if (index >= 0 && index < this.cards.length) {
             this.cards[index].focus();
             this.currentIndex = index;
         }
     }
 
-    setupKeyboardNavigation() {
-        document.addEventListener('keydown', (e) => {
+    private setupKeyboardNavigation(): void {
+        document.addEventListener('keydown', (e: KeyboardEvent) => {
             switch(e.key) {
                 case 'ArrowRight':
                     e.preventDefault();
@@ -46,17 +53,18 @@ class TenFootNavigator {
         });
     }
 
-    setupClickHandlers() {
-        this.cards.forEach((card, index) => {
+    private setupClickHandlers(): void {
+        this.cards.forEach((card: HTMLElement, index: number) => {
             card.addEventListener('click', () => {
-                const service = card.dataset.service;
-                const title = card.querySelector('.service-title').textContent;
+                const service = card.dataset.service || '';
+                const titleElement = card.querySelector('.service-title');
+                const title = titleElement?.textContent || '';
 
                 console.log(`Selected: ${title} (${service})`);
 
                 // Dispatch custom event for handling navigation
-                const event = new CustomEvent('serviceSelected', {
-                    detail: { service, title, index }
+                const event = new CustomEvent<ServiceSelected>('serviceSelected', {
+                    detail: { service }
                 });
                 document.dispatchEvent(event);
 
@@ -76,7 +84,7 @@ class TenFootNavigator {
         });
     }
 
-    handleLoading() {
+    private handleLoading(): void {
         const loadingIndicator = document.getElementById('loading-indicator');
 
         if (loadingIndicator) {
@@ -89,10 +97,12 @@ class TenFootNavigator {
     }
 }
 
-
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         new TenFootNavigator();
+
+        //const songbook = pug.compileFile("/pages/songbook/index.pug")
+        //document.getElementById('app').innerHTML = homePage({ data: someData });
     });
 } else {
     new TenFootNavigator();
