@@ -90,19 +90,6 @@ def img2b64(path):
         encoded_string = base64.b64encode(image_file.read())
     return encoded_string
 
-class Counter:
-    def __init__(self, order):
-        self.order = order
-        self.count = len(order)
-        self.last = 0
-    def get_count(self, file_name):
-        try:
-            self.last = (self.order.index(file_name) + 1)
-        except:
-            self.last = self.count
-            self.count += 1
-        return self.last
-
 if __name__ == "__main__":
     json_res = {}
     songs = get_songbook_artifact()
