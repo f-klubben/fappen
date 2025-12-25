@@ -95,14 +95,14 @@ if __name__ == "__main__":
     songs = get_songbook_artifact()
     song_count = len(songs)
     count = 0
-    for index in songs:
+    for song in songs:
         count += 1
         percent = (count/song_count)*100
         sys.stdout.write("\rGenerating songbook %d%%" % (percent))
         sys.stdout.flush()
-        file_name = songs[index]['path'].split("/")[-1].split(".")[0]
-        if generate_song(index, songs[index], file_name):
-            json_res[index] = [songs[index]['title'], f"./songs/{file_name}.html"]
+        file_name = song['path'].split("/")[-1].split(".")[0]
+        if generate_song(song['number'], song, file_name):
+            json_res[song['number']] = [song['title'], f"./songs/{file_name}.html"]
 
     print("\n\rWriting to json")
     with open(JSON_OUTPUT_PATH, encoding="utf-8", mode="w") as f:
