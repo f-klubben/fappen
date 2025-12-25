@@ -46,7 +46,7 @@ main {
 
 // Header with logo
 .header-with-logo {
-  margin-bottom: 4rem;
+  margin-bottom: 2rem;
 
   .logo-title-container {
     display: flex;
@@ -74,7 +74,7 @@ main {
     flex: 1;
 
     h1 {
-      font-size: 4.5rem;
+      font-size: 3rem;
       font-weight: 700;
       margin-bottom: 0.5rem;
       @include text-shadow;
@@ -82,7 +82,7 @@ main {
     }
 
     .subtitle {
-      font-size: 2.2rem;
+      font-size: 2rem;
       opacity: 0.8;
       font-weight: 300;
     }
@@ -119,7 +119,7 @@ main {
 
 // Header
 header {
-  margin-bottom: 4rem;
+  margin-bottom: 3rem;
   height: auto !important;
 
   h1 {
@@ -139,7 +139,8 @@ header {
 // Service Grid
 .service-container {
   flex: 1;
-  display: grid;
+  display: flex;
+  position: fixed;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 3rem;
   margin-bottom: 4rem;
@@ -187,7 +188,7 @@ header {
 
 // Footer
 .frit-fit {
-  text-align: center;
+  text-align: left;
   font-size: 2rem;
   opacity: 0.6;
   padding: 2rem;
