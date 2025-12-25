@@ -42,6 +42,7 @@ html {
 
 main {
   flex: 1;
+  padding-left: 100vw; // scuffed
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -122,6 +123,7 @@ header {
 
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
+  padding-inline: 3rem;
 
   /* IE / Edge Legacy */
   -ms-overflow-style: none;
@@ -151,6 +153,7 @@ header {
   font-size: clamp(0.1rem, 1vw, 6rem);
   height: 25em;
   width: 25em;
+  scroll-margin-inline: 30rem;
 
   &:hover,
   &:focus {
