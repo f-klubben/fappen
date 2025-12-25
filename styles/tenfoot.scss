@@ -39,6 +39,7 @@ html {
   display: flex;
   flex-direction: column;
 }
+
 main {
   flex: 1;
   display: flex;
@@ -140,13 +141,33 @@ header {
 .service-container {
   flex: 1;
   display: flex;
-  overflow-x: auto;
-  overflow-y: visible;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  align-items: center;
   gap: 3rem;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+
+  /* IE / Edge Legacy */
+  -ms-overflow-style: none;
+}
+
+.service-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
 }
 
 .service-card {
+  flex: 0 0 auto; // prevents shrinking
+  margin: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2em;
+
+  text-align: center;
   background: $card-bg;
   backdrop-filter: blur(10px);
   border-radius: 2rem;
@@ -154,14 +175,9 @@ header {
   @include smooth-transition;
   border: 2px solid $card-border;
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
   font-size: clamp(0.1rem, 1vw, 6rem);
-  margin-bottom: 2rem;
-  margin-top: 2rem;
-  height: 30em;
+  height: 25em;
+  width: 25em;
 
   &:hover,
   &:focus {
@@ -173,14 +189,12 @@ header {
 
   .service-icon {
     font-size: 6em;
-    margin-bottom: 2rem;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
   }
 
   .service-title {
     font-size: 3em;
     font-weight: 600;
-    margin-bottom: 1.5rem;
   }
 
   .service-description {
