@@ -101,6 +101,17 @@ class TenFootNavigator {
     }
 }
 
+document.querySelectorAll('.service-card').forEach(card => {
+    card.addEventListener('focus', () => {
+        card.scrollIntoView({
+            behavior: 'smooth',
+            inline: 'center',
+            block: 'nearest'
+        });
+    });
+});
+
+
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
