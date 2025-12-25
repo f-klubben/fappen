@@ -91,34 +91,6 @@ main {
   }
 }
 
-// Loading Indicator
-#loading-indicator {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1000;
-
-  &.spinner {
-    animation: spin 2s linear infinite;
-  }
-
-  img {
-    width: 200px;
-    height: 200px;
-    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
-  }
-}
-
-@keyframes spin {
-  0% {
-    transform: translate(-50%, -50%) rotate(0deg);
-  }
-  100% {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
-}
-
 // Header
 header {
   height: auto !important;
@@ -239,24 +211,31 @@ header {
   }
 }
 
-// Responsive adjustments
-@media (max-width: 1200px) {
-  main {
-    padding: 2rem;
+
+// Loading Indicator
+#loading-indicator {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+
+  &.spinner {
+    animation: spin 2s linear infinite;
   }
 
-  header {
-    h1 {
-      font-size: 3.5rem;
-    }
-
-    .subtitle {
-      font-size: 2rem;
-    }
+  img {
+    width: 200px;
+    height: 200px;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
   }
+}
 
-  .service-container {
-    grid-template-columns: 1fr;
-    gap: 2rem;
+@keyframes spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
