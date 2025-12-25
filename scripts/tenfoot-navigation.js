@@ -64,7 +64,6 @@ class TenFootNavigator {
                 // Example: window.location.href = `/service/${service}`;
             });
 
-            // Track focus changes
             card.addEventListener('focus', () => {
                 this.currentIndex = index;
 
@@ -91,7 +90,6 @@ class TenFootNavigator {
 }
 
 
-// Initialize when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         new TenFootNavigator();
@@ -100,5 +98,4 @@ if (document.readyState === 'loading') {
     new TenFootNavigator();
 }
 
-// Export for use in other modules if needed
 export default TenFootNavigator;
