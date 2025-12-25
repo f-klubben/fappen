@@ -50,20 +50,20 @@ main {
 
 // Header with logo
 .header-with-logo {
-  padding: 1.5rem;
+  padding: 1.5em;
 
   .logo-title-container {
     display: flex;
     align-items: center;
-    gap: 2rem;
+    gap: 2em;
   }
 
   .logo-wrapper {
     flex-shrink: 0;
 
     .logo {
-      width: 120px;
-      height: 120px;
+      width: 8em;
+      height: 8em;
       filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.3));
       @include smooth-transition(transform);
 
@@ -94,16 +94,17 @@ main {
 // Header
 header {
   height: auto !important;
+  font-size: clamp(0.1rem, 2vh, 6rem);
 
   h1 {
-    font-size: 5rem;
+    font-size: 5em;
     font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 0.2em;
     @include text-shadow;
   }
 
   .subtitle {
-    font-size: 2.5rem;
+    font-size: 2.5em;
     opacity: 0.8;
     font-weight: 300;
   }
@@ -177,12 +178,14 @@ header {
 }
 
 // Footer
-.frit-fit {
-  text-align: left;
-  font-size: 2rem;
-  opacity: 0.6;
+footer {
   padding: 2rem;
   margin-top: auto;
+}
+.frit-fit {
+  text-align: left;
+  font-size: 1.5em;
+  opacity: 0.6;
 }
 
 // Focus indicators for accessibility
