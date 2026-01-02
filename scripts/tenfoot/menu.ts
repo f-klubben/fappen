@@ -9,11 +9,11 @@ export interface GotoPage {
 
 export class TenFootMenu {
     private cards: NodeListOf<HTMLElement>;
-    private navigator: GotoPage;
+    private nav: GotoPage;
     private currentIndex: number;
 
     constructor(navigator: GotoPage, cardContainer: Element) {
-        this.navigator = navigator;
+        this.nav = navigator;
         this.cards = cardContainer.querySelectorAll<HTMLElement>('.menu10foot-card');
         this.currentIndex = 0;
         this.init();
@@ -60,21 +60,14 @@ export class TenFootMenu {
 
     private setupClickHandlers(): void {
         this.cards.forEach((card: HTMLElement, index: number) => {
-            card.addEventListener('click', () => {
-                const service = card.dataset.service || '';
+            card.addEventListener('click', async () => {
+                const link = card.dataset.link || '';
                 const titleElement = card.querySelector('.service-title');
                 const title = titleElement?.textContent || '';
 
-                console.log(`Selected: ${title} (${service})`);
+                console.log(`Selected: ${title} (${link})`);
 
-                // Dispatch custom event for handling navigation
-                const event = new CustomEvent<ServiceSelected>('serviceSelected', {
-                    detail: { service }
-                });
-                document.dispatchEvent(event);
-
-                // Add your navigation logic here
-                // navigator.navigateTo("links").then(r => console.log(r));
+                await this.nav.navigateTo(link);
             });
 
             card.addEventListener('focus', () => {

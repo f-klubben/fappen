@@ -58,11 +58,18 @@ class TenFootNavigator implements GotoPage {
         await this.LoadPage(page);
     }
 
-    async LoadPage(path: string) {
+    async LoadPage(tenfoot_page: string) {
+        // Special case of navigation
+        if (tenfoot_page == "//"){
+            window.location.href = "/";
+        }else if (tenfoot_page == "/"){
+            tenfoot_page = "index";
+        }
+
         const app = document.getElementsByTagName('section')[0]
 
         try {
-            const response = await fetch(`/${path}.html`);
+            const response = await fetch(`/tenfoot/${tenfoot_page}.html`);
             const html = await response.text();
             app.innerHTML = html;
 
