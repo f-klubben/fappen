@@ -11,7 +11,7 @@ module.exports = {
             Events: "/pages/events.pug",
             Links: "/pages/links.pug",
             Offline: "/pages/offline.pug",
-            TenFoot: "/pages/tenfoot.pug",
+            TenFoot: "/pages/tenfoot/index.pug",
         },
         links: {
             Slack: "https://fklubben.slack.com",
