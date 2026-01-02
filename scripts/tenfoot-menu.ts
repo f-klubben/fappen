@@ -4,12 +4,12 @@ interface ServiceSelected {
     service: string;
 }
 
-class TenFootNavigator {
+class TenFootMenuNavigator {
     private cards: NodeListOf<HTMLElement>;
     private currentIndex: number;
 
-    constructor() {
-        this.cards = document.querySelectorAll<HTMLElement>('.service-card');
+    constructor(cardContainer: Element) {
+        this.cards = cardContainer.querySelectorAll<HTMLElement>('.menu10foot-card');
         this.currentIndex = 0;
         this.init();
     }
@@ -95,17 +95,30 @@ class TenFootNavigator {
             });
         }
     }
+
+    public async LoadPage(path: string) {
+        const app = document.getElementsByTagName('section')[0]
+
+        try {
+            const response = await fetch(`/${path}.html`);
+            const html = await response.text();
+            app.innerHTML = html;
+        } catch (error) {
+            app.innerHTML = '<p>Page not found</p>';
+        }
+    }
 }
+
+const initMenu = () => {
+    const menuContainer = document.getElementsByClassName('menu10foot')[0];
+    let nav = new TenFootMenuNavigator(menuContainer);
+};
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        new TenFootNavigator();
-
-        //const songbook = pug.compileFile("/pages/songbook/index.pug")
-        //document.getElementById('app').innerHTML = homePage({ data: someData });
-    });
+    document.addEventListener('DOMContentLoaded', initMenu);
 } else {
-    new TenFootNavigator();
+    initMenu();
 }
 
-export default TenFootNavigator;
+// nav.LoadPage("links").then(r => console.log(r));
+export default TenFootMenuNavigator;

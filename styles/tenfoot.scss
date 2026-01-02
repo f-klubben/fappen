@@ -112,7 +112,7 @@ header {
 }
 
 // Service Grid
-.service-container {
+.menu10foot {
   flex: 1;
   display: flex;
   align-items: center;
@@ -129,11 +129,11 @@ header {
   -ms-overflow-style: none;
 }
 
-.service-container::-webkit-scrollbar {
+.menu10foot::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Edge */
 }
 
-.service-card {
+.menu10foot-card {
   flex: 0 0 auto; // prevents shrinking
   margin: 0;
 
@@ -163,17 +163,17 @@ header {
     @include card-shadow;
   }
 
-  .service-icon {
+  .menu10foot-icon {
     font-size: 6em;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
   }
 
-  .service-title {
+  .menu10foot-title {
     font-size: 3em;
     font-weight: 600;
   }
 
-  .service-description {
+  .menu10foot-description {
     font-size: 1.8em;
     opacity: 0.9;
     line-height: 1.6;
