@@ -1,11 +1,9 @@
 extends ../components/base_layout
+include ../components/service_menu
+
 block head
-    link(rel="stylesheet" href="/styles/links.scss")
+    link(rel="stylesheet" href="/styles/service-links.scss")
 
 block content
     h1 Links to Fklub services
-    .links.border-outer
-        each key in Object.keys(links)
-            a(href=links[key] target="_blank")
-                .border-inner
-                    h3=key
+    +menu(links, "_blank")
