@@ -1,0 +1,7 @@
+mixin menu(links, target)
+    link(rel="stylesheet" href="/styles/service-menu.scss")
+    section.service-links.border-outer
+        each key in Object.keys(links)
+            a(href=links[key] target=target)
+                .border-inner
+                    h3=key
