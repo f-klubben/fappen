@@ -1,0 +1,13 @@
+include ../../components/core
+
+doctype html
+html(lang="en")
+    body
+        script.
+            // Read current mode from localStorage
+            const tenFoot = localStorage.getItem('tenFoot') === '1';
+
+            localStorage.setItem('tenFoot', tenFoot ? '0' : '1');
+
+            // Redirect after flipping
+            window.location.href = '/';
