@@ -1,6 +1,5 @@
 mixin menu(links, target)
     link(rel="stylesheet" href="/styles/service-menu.scss")
-    section.service-links.border-outer
     section.service-menu.border-outer
         each key in Object.keys(links)
             a.service-link(href=links[key][0] target=target)
