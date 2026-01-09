@@ -3,6 +3,10 @@ mixin menu(links, target)
     section.service-links.border-outer
     section.service-menu.border-outer
         each key in Object.keys(links)
-            a.service-link(href=links[key] target=target)
+            a.service-link(href=links[key][0] target=target)
+                if links[key].length > 1
+                    .service-icon=links[key][1]
                 .border-inner
                     h3=key
+                if links[key].length > 2
+                    .service-description=links[key][2]
