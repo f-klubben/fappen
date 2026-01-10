@@ -17,7 +17,7 @@ html(lang="en")
             ul.border-outer
                 each key in Object.keys(navigation)
                     .border-inner
-                        a(href=navigation[key])
+                        a(href=navigation[key][0])
                             li= key
                 button.darkmode-button darkmode
         main
@@ -28,4 +28,8 @@ html(lang="en")
             if hide_frit_fit !== true
                 p.frit-fit #fritfit (for real)
         +scripts
+            script.
+                // Determine mode from localStorage (or default)
+                const tenFoot = localStorage.getItem('tenFoot') === '1';
+                if (tenFoot) document.body.classList.add('ten-foot');
             block scripts

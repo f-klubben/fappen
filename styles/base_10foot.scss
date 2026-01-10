@@ -1,0 +1,67 @@
+body.ten-foot {
+  // Variables
+  $primary-gradient-start: #1a1a2e;
+  $primary-gradient-end: #16213e;
+  $text-color: #ffffff;
+  $focus-color: #00d4ff;
+
+  body {
+    background: linear-gradient(135deg, $primary-gradient-start 0%, $primary-gradient-end 100%);
+    color: $text-color;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    overflow-x: hidden;
+    max-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  main {
+    flex: 1;
+    padding-left: 100vw; // scuffed
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    //padding: 4rem;
+  }
+
+  .center {
+    text-align: center;
+  }
+
+  .flex-center {
+    align-content: center;
+    justify-content: center;
+  }
+
+  /*
+    Header & navigation
+   */
+
+  header {
+    display: none;
+  }
+
+  .spinner {
+    animation: rotation 5s infinite linear;
+  }
+
+  @keyframes rotation {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(359deg);
+    }
+  }
+
+  /* Border style simulating html tables */
+  .border-outer {
+    border: inherit !important;
+  }
+
+  .border-inner {
+    margin: inherit !important;
+    border: inherit !important;
+  }
+}
+

@@ -1,0 +1,174 @@
+// ten-foot.scss
+// Variables
+$primary-gradient-start: #1a1a2e;
+$primary-gradient-end: #16213e;
+$text-color: #ffffff;
+$focus-color: #00d4ff;
+
+// Mixins
+@mixin card-shadow {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+@mixin text-shadow {
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+@mixin smooth-transition($properties: all, $duration: 0.3s) {
+  transition: $properties $duration ease;
+}
+
+// Reset
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+// Body
+html {
+  background: linear-gradient(135deg, $primary-gradient-start 0%, $primary-gradient-end 100%);
+  color: $text-color;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  overflow-x: hidden;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+  padding-left: 100vw; // scuffed
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  //padding: 4rem;
+}
+
+// Header with logo
+.header-with-logo {
+  padding: 1.5em;
+
+  .logo-title-container {
+    display: flex;
+    align-items: center;
+    gap: 2em;
+  }
+
+  .logo-wrapper {
+    flex-shrink: 0;
+
+    .logo {
+      width: 8em;
+      height: 8em;
+      filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.3));
+      @include smooth-transition(transform);
+
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+  }
+
+  .title-wrapper {
+    flex: 1;
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      @include text-shadow;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      font-size: 2rem;
+      opacity: 0.8;
+      font-weight: 300;
+    }
+  }
+}
+
+// Header
+header {
+  height: auto !important;
+  font-size: clamp(0.1rem, 2vh, 6rem);
+
+  h1 {
+    font-size: 5em;
+    font-weight: 700;
+    margin-bottom: 0.2em;
+    @include text-shadow;
+  }
+
+  .subtitle {
+    font-size: 2.5em;
+    opacity: 0.8;
+    font-weight: 300;
+  }
+}
+
+// Footer
+footer {
+  padding: 2rem;
+  margin-top: auto;
+}
+.frit-fit {
+  text-align: left;
+  font-size: 1.5em;
+  opacity: 0.6;
+}
+
+// Focus indicators for accessibility
+*:focus {
+  outline: 4px solid $focus-color;
+  outline-offset: 4px;
+}
+
+// Navigation hint
+.nav-hint {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  font-size: 1.5rem;
+  opacity: 0.5;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+
+  kbd {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-family: monospace;
+    font-size: 1.3rem;
+  }
+}
+
+
+// Loading Indicator
+#loading-indicator {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+
+  &.spinner {
+    animation: spin 2s linear infinite;
+  }
+
+  img {
+    width: 200px;
+    height: 200px;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
