@@ -69,9 +69,23 @@ class TenFootNavigator implements GotoPage {
         const app = document.getElementsByTagName('section')[0]
 
         try {
-            const response = await fetch(`/tenfoot/${tenfoot_page}.html`);
-            const html = await response.text();
-            app.innerHTML = html;
+            await fetch(`/${tenfoot_page}.html`)
+                .then(response => response.text())
+                .then(html => {
+                    // Parse the HTML string into a document
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    // Extract the <main> element
+                    const mainContent = doc.querySelector('main');
+                    console.log(mainContent);
+
+                    if (mainContent) {
+                        // Inject only the inner content of <main>
+                        app.innerHTML = mainContent.innerHTML;
+                    }
+                }
+            );
 
             this.TryInstantiateMenu();
         } catch (error) {
