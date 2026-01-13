@@ -1,0 +1,27 @@
+@import "./base.scss";
+
+fa-profile {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  width: 90%;
+  overflow-y: scroll;
+  text-align: center;
+}
+
+div {
+    margin: 0 auto;
+    text-align: center;
+    table {
+        text-align: left;
+        border: 1px outset black;
+        & td,
+        & th {
+          border: 1px inset black;
+          padding: 2px;
+        }
+        & td.price {
+          text-align: right;
+        }
+      }
+}

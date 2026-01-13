@@ -15,8 +15,8 @@ OUTPUT_PATH = Path(".").joinpath("pages", "songbook", "songs")
 TEMPALTE_PATH = CWD.joinpath("util","template")
 ARCHIVE_PATH = Path(".").joinpath("sangbog-main.zip")
 JSON_PATH = CWD.joinpath("pages", "songbook", "songs.json")
-### EXTRACTING PART ###
 
+### EXTRACTING PART ###
 def get_songbook(file_path):
     url = 'https://github.com/f-klubben/sangbog/archive/master.zip'
     urlretrieve(url, file_path)

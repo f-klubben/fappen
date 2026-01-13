@@ -25,6 +25,15 @@ export interface UserProfile {
     balance: number,
 }
 
+export interface Sales {
+    sales: [Sale]
+}
+export interface Sale {
+    timestamp: Date,
+    product: string,
+    price: number,
+}
+
 export interface SaleResponse {
     status: string,
     msg: string,
@@ -58,6 +67,8 @@ export interface ActiveProductList {
 
 type BalanceChange = { old_balance: number, new_balance: number };
 
+type SalesUpdate = { sales: Sales};
+
 /**
  * The backend interface generalises over the basic functionality
  * that is required for the stregsystem to function.
@@ -82,6 +93,12 @@ export interface Backend {
      * @param user_id
      */
     get_member_balance(user_id: number): Promise<number>;
+
+    /**
+     * Get the current users sales
+     * @param user_id 
+     */
+    get_member_sales(user_id: number): Promise<Sales>
 
     /**
      * Get a list of products that are active within a given room.
@@ -164,6 +181,7 @@ export const events = {
     access_update: new AppEvent<AccessStatus>("access_status"),
     profile_loaded: new AppEvent<UserProfile>("profile_loaded"),
     profile_balance_change: new AppEvent<BalanceChange>("profile_balance_change"),
+    profile_sales_change: new AppEvent<SalesUpdate>("profile_sales_update"),
 };
 
 /**
@@ -523,6 +541,135 @@ class FaStregCartDialog extends HTMLElement {
     }
 }
 
+class FaLogout extends HTMLElement {
+    profile: UserProfile;
+    constructor() {
+        super();
+        events.ready.register_handle(this.on_ready, this);
+        events.profile_loaded.register_handle(this.on_profile_load, this);
+    }
+    on_ready() {
+        if (this.profile == null) {
+            this.innerHTML = ""
+        } else {
+            this.render_button()
+        }
+    }
+    render_button(){
+        this.innerHTML = ""
+        let button = document.createElement("button");
+        button.onclick = () => {
+            this.logout()
+        }
+        button.textContent = "Logout"
+        this.append(
+            button
+        );
+    }
+    on_profile_load(profile: UserProfile) {
+        this.profile = profile;
+        this.render_button()
+    }
+    async logout() {
+        await AppDatabase.instance.settings.delete("profile.active");
+        window.location.reload()
+    }
+}
+class FaProfile extends HTMLElement {
+    profile: UserProfile;
+
+    balance: HTMLHeadingElement;
+    username: HTMLHeadingElement;
+    sales: HTMLTableElement;
+
+    constructor() {
+        super();
+        events.profile_loaded.register_handle(this.on_profile_load, this);
+        events.profile_balance_change.register_handle(this.on_balance_change, this);
+        events.profile_sales_change.register_handle(this.on_get_sales, this);
+        events.ready.register_handle(this.on_ready, this);
+        this.balance = document.createElement("h2");
+        this.username = document.createElement("h2");
+        this.sales = document.createElement("table");
+        
+        let div = document.createElement("div")
+        div.classList.add("default")
+        let s10 = document.createElement("h3")
+        s10.innerText = "De sidste 10 køb"
+        div.appendChild(s10)
+        div.appendChild(this.sales)
+        this.append(
+            this.username,
+            document.createElement('br'),
+            this.balance,
+            document.createElement('br'),
+            div
+        );
+    }
+    on_ready() {
+        if (this.profile == null) {
+            window.location.pathname = "/stregsystem.html"
+        }
+    }
+    
+    on_profile_load(profile: UserProfile) {
+        this.profile = profile;
+        console.log(profile)
+        this.username.textContent = "Velkommen " + profile.name + " (" + profile.username + ")";
+        this.balance.textContent = "Du har " + format_stregdollar(profile.balance) + " til gode!";
+        this.get_member_sales()
+         
+
+        setTimeout(() => this.balance_update_job(), 10000);
+    }
+
+    async logout() {
+        await AppDatabase.instance.settings.delete("profile.active");
+        window.location.reload()
+    }
+
+    on_balance_change(change: BalanceChange) {
+        this.balance.textContent = "Du har " + format_stregdollar(change.new_balance) + " til gode!";
+    }
+
+    on_get_sales(change: SalesUpdate) {
+        let res = "<tbody><tr><th>Dato</th><th>Navn</th><th>Pris</th></tr>"
+        let ns = change.sales.sales
+        console.log(ns);
+        const options: Intl.DateTimeFormatOptions = {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        };
+        for(let i= 0; i < ns.length; i++){
+            res += "<tr><th>"+new Date(ns[i].timestamp).toLocaleDateString("da-DK",options) +"</th><th>" + ns[i].product +"</th><th>"+format_stregdollar(ns[i].price) +"</th></tr>"
+        }
+        this.sales.innerHTML = res;
+        disable_loading_indicator();
+    }
+
+    async update_balance(now: number) {
+        const balance = await backend.get_member_balance(this.profile.id);
+        last_balance_bg_update = now;
+        await AppDatabase.instance.settings.put(now, AppDatabase.balance_update_time_key);
+        events.profile_balance_change.dispatch({old_balance: this.profile.balance, new_balance: balance})
+    }
+
+    async get_member_sales() {
+        const sales = await backend.get_member_sales(this.profile.id);
+        events.profile_sales_change.dispatch({sales: sales});
+    }
+
+    async balance_update_job() {
+        const now = Date.now();
+
+        if (now - last_balance_bg_update >= 10000)
+            await this.update_balance(now);
+
+        setTimeout( () => this.balance_update_job(), 10000);
+    };
+}
+
 /**
  * HTML element used to display profile information in the header.
  * Defines the custom element `<fa-profile-widget>`.
@@ -712,6 +859,8 @@ export const init = async () => {
     customElements.define("fa-streg-cart-dialog", FaStregCartDialog);
     customElements.define("fa-stregsystem", FaStregsystem);
     customElements.define("fa-profile-widget", FaProfileWidget);
+    customElements.define("fa-profile", FaProfile);
+    customElements.define("fa-logout", FaLogout);
 
     last_balance_bg_update = await AppDatabase.instance.settings.get(AppDatabase.balance_update_time_key) | 0;
 

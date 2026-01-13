@@ -10,6 +10,7 @@ module.exports = {
             Songbook: "/pages/songbook/index.pug",
             Events: "/pages/events.pug",
             Links: "/pages/links.pug",
+            Profile: "/pages/profile.pug",
             Offline: "/pages/offline.pug"
         },
         links: {
