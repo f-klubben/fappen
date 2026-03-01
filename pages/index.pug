@@ -1,8 +1,11 @@
 extends ../components/base_layout
 include ../components/service_menu
+include ../components/ffo-button
 
 block content
     +vspace("25px")
     img.big-logo(src="/media/flogo.svg" height="200")
     +vspace("25px")
+    +ffo()
     +menu(navigation, "")
+    script(type="module", src="../scripts/ffo-callback.ts")
