@@ -89,6 +89,10 @@ export const post_sale = async (buystring: string, _: number, user_id: number): 
     return {status, msg};
 }
 
+export const post_sale_intent = async (product_string: string, room_id: number, webhook_url: string, max_expires_in_seconds: number): Promise<SaleResponse> => {
+    throw new Error("post_sale_intent is not supported by this API backend");
+}
+
 @py.pyModule("cli_helper")
 class CliHelper {
 

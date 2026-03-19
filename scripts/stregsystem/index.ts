@@ -98,6 +98,15 @@ export interface Backend {
      */
     post_sale(buystring: string, room_id: number, user_id: number);
 
+    /**
+     * Posts an anonymous intent for a sale.
+     * @param product_string Same as a "buystring" except there's no member in the string.
+     * @param room_id
+     * @param webhook_url Optional URL to respond when intent-status is updated.
+     * @param max_expires_in_seconds The maximum duration the intent will last.
+     */
+    post_sale_intent(product_string: string, room_id: number, webhook_url: string, max_expires_in_seconds: number);
+
     init(): Promise<void>;
 }
 

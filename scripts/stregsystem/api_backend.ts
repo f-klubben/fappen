@@ -38,4 +38,16 @@ export const post_sale = (buystring: string, room: number, user_id: number): Pro
         .then(res => promise_cond(res.status === 200, res, res))
         .then(res => res.json());
 
+export const post_sale_intent = (product_string: string, room_id: number, webhook_url: string, max_expires_in_seconds: number): Promise<SaleResponse> =>
+    fetch(`${base_api_url}/sale/intent`, {
+        method: 'POST',
+        cache: "no-cache",
+        headers: {
+            "Content-Type": 'application/json',
+        },
+        body: JSON.stringify({product_string, room_id, webhook_url, max_expires_in_seconds}),
+    })
+        .then(res => promise_cond(String(res.status)[0] === '2', res, res))
+        .then(res => res.json());
+
 export const init = () => Promise.resolve();
