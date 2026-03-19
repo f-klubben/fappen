@@ -312,12 +312,18 @@ class FaStregCart extends HTMLElement {
             return;
 
         const {profile} = this.owner;
-        const buy_string = this.get_buy_string(profile.username);
+        const product_string = this.get_buy_string("").trimStart();
         enable_loading_indicator(true);
         try {
-            await backend.post_sale(buy_string, default_room, profile.id);
-            const new_balance = await backend.get_member_balance(profile.id);
-            events.profile_balance_change.dispatch({old_balance: profile.balance, new_balance});
+            const res = await backend.post_sale_intent(product_string, default_room, "", -1);
+
+            const popup = window.open(
+                res.confirmation_url,
+                "payment",
+                "width=500,height=700"
+            );
+
+            //events.profile_balance_change.dispatch({old_balance: profile.balance, new_balance});
             this.contents = {};
             this.update();
             this.owner.querySelectorAll('.dec')
