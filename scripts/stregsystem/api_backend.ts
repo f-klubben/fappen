@@ -45,7 +45,7 @@ export const post_sale_intent = (product_string: string, room_id: number, webhoo
         headers: {
             "Content-Type": 'application/json',
         },
-        body: JSON.stringify({product_string, room_id, webhook_url, max_expires_in_seconds}),
+        body: JSON.stringify({productstring: product_string, room_id, webhook_url, max_expires_in_seconds}),
     })
         .then(res => promise_cond(String(res.status)[0] === '2', res, res))
         .then(res => res.json());
