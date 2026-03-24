@@ -431,7 +431,7 @@ class FaStregCartDialog extends HTMLElement {
 
         dialog_form.append(
             text('cancel', 'button'),
-            text('confirm', 'button'),
+            text('purchase', 'button'),
         );
 
         (dialog_form.children[0] as HTMLButtonElement).value = "";
