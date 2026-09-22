@@ -5,13 +5,13 @@ module.exports = {
         app_name: "Fappen",
         manifest: require('./manifest.json'),
         navigation: {
-            Frontpage: ["/pages/index.pug", "🏠", "Frontpage"],
+            Frontpage: ["/pages/index.pug", "🏠", "Go to the front page"],
             Stregsystem: ["/pages/stregsystem.pug", "💵", "Browse our collection of wares"],
-            Songbook: ["/pages/songbook/index.pug", "🎼", "Browser our collection of songs"],
+            Songbook: ["/pages/songbook/index.pug", "🎼", "Browse our collection of songs"],
             Events: ["/pages/events.pug", "📅", "List upcoming events"],
             Links: ["/pages/links.pug", "🌐", "Look at nice links"],
             Offline: ["/pages/offline.pug", "✈", "Enter offline-mode"],
-            TenFoot: ["/pages/tenfoot/toggle.pug", "➜]", "Toggle 10-foot display"],
+            TenFoot: ["/pages/tenfoot/toggle.pug", "➜", "Toggle 10-foot display"],
         },
         links: {
             Slack: ["https://fklubben.slack.com"],

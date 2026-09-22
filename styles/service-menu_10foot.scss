@@ -23,20 +23,21 @@ $focus-color: #00d4ff;
 }
 
 // Only apply rules on 10-foot mode
-body.ten-foot {
+html.ten-foot {
   // Service Grid
   .service-menu {
+    width: 100%;
     flex: 1;
     display: flex;
     align-items: center;
-    gap: 3rem;
+    gap: clamp(2rem, 3vw, 4rem);
 
     overflow-x: auto;
     overflow-y: hidden;
 
     scroll-behavior: smooth;
     scroll-snap-type: x mandatory;
-    padding-inline: 3rem;
+    padding-inline: clamp(1rem, 3vw, 3rem);
 
     /* IE / Edge Legacy */
     -ms-overflow-style: none;
@@ -63,6 +64,7 @@ body.ten-foot {
     gap: 2em;
 
     text-align: center;
+    box-sizing: border-box;
     background: $card-bg;
     backdrop-filter: blur(10px);
     border-radius: 2rem;
@@ -70,34 +72,40 @@ body.ten-foot {
     @include smooth-transition;
     border: 2px solid $card-border;
     cursor: pointer;
-    font-size: clamp(0.1rem, 1vw, 6rem);
-    height: 25em;
-    width: 25em;
-    scroll-margin-inline: 30rem;
+    font-size: clamp(0.75rem, 1vw, 1.25rem);
+    min-height: clamp(24rem, 62vh, 40rem);
+    width: clamp(20rem, 25vw, 30rem);
+    scroll-margin-inline: 3rem;
+    scroll-snap-align: center;
+    justify-content: center;
 
     &:hover,
-    &:focus {
+    &:focus-visible {
       transform: scale(1.05);
       background: $card-bg-hover;
-      border-color: $card-border-hover;
+      border-color: $focus-color;
       @include card-shadow;
+      z-index: 1;
     }
 
-    div > h3 {
-      h3 {
-        font-size: 3em;
-        font-weight: 600;
-      }
+    h3 {
+      font-size: 3em;
+      font-weight: 600;
+      line-height: 1.15;
+      margin: 0;
     }
 
     .service-icon {
+      display: block;
       font-size: 6em;
       filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
     }
 
     .service-description {
+      display: block;
       font-size: 1.8em;
-      opacity: 0.9;
+      opacity: 0.95;
+      font-weight: 500;
       line-height: 1.6;
     }
 
