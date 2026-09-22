@@ -1,4 +1,4 @@
-.service-links {
+.service-menu {
   width: 50%;
   box-sizing: border-box;
   text-align: center;
@@ -7,4 +7,8 @@
 
 .service-body {
   padding: 1em;
+}
+
+.service-icon, .service-description {
+  display: none;
 }
