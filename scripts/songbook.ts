@@ -209,10 +209,12 @@ function render_song_body(song: Song): void {
             song_element.appendChild(document.createElement("br"));
             continue;
         }
-        paragraph_number++;
+        if (type !== "c")
+            paragraph_number++;
         const paragraph = document.createElement("div");
         paragraph.className = `wrap ${type === "c" ? "chorus" : "verse"}`;
-        paragraph.innerHTML = `<span class="num wrap-child">${paragraph_number}${type === "v" ? "." : ""}</span><span class="vtext wrap-child">${tex_to_html(text)}</span>`;
+        const label = type === "c" ? "Omkvæd" : `${paragraph_number}.`;
+        paragraph.innerHTML = `<span class="num wrap-child">${label}</span><span class="vtext wrap-child">${tex_to_html(text)}</span>`;
         song_element.appendChild(paragraph);
         song_element.appendChild(document.createElement("br"));
         song_element.appendChild(document.createElement("br"));
