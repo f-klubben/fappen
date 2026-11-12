@@ -14,6 +14,7 @@ const package_info = require('./package.json');
 
 const github_api_url = 'https://api.github.com/';
 const github_repo_str = 'repos/f-klubben/fappen/';
+const sangbog_repo_str = 'repos/f-klubben/sangbog/';
 
 const options = {
     verbose: false,
@@ -116,6 +117,13 @@ const import_zx = async (r = true) => {
         return fetch(endpoint);
     };
 
+    const sangbog_release = (version = 'latest') => {
+        if (version !== 'latest') {
+            throw new Error("this don't work yet");
+        }
+        return fetch(`${github_api_url}${sangbog_repo_str}releases/${version}`);
+    };
+
     /*
         Songbook
      */
@@ -138,27 +146,24 @@ const import_zx = async (r = true) => {
     const songbook_fetch_artifacts = async (version = 'latest') => {
         print(`Fetching release info for version: ${version}`);
 
-        const release_info = await github_release(version)
+        const release_info = await sangbog_release(version)
             .then(res => res.json());
 
-        let archive_link;
+        let songs_link;
         for (const asset of release_info['assets']) {
-            if (asset['name'] === "songbook.tar.gz") {
-                archive_link = asset['browser_download_url'];
+            if (asset['name'] === "songs.json") {
+                songs_link = asset['browser_download_url'];
                 break;
             }
         }
 
-        if (archive_link == null) {
+        if (songs_link == null) {
             print(`Release '${version}' does not contain songbook artifacts.`);
             throw new Error("unable to fetch songbook artifacts");
         }
 
-        // fetch and unpack the artifacts
-        await pipeline(
-            (await fetch(archive_link)).body,
-            tar.x({cwd: './pages/songbook'}),
-        );
+        const songs = await fetch(songs_link).then(res => res.arrayBuffer());
+        await writeFile('./pages/songbook/songs.json', Buffer.from(songs));
     }
 
     /*

@@ -16,19 +16,13 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Get Songbook
-        uses: actions/checkout@v3
-        with:
-          repository: f-klubben/sangbog
-          path: sangbog
-
       - name: Build songs (with failover)
         run: |
           set -e
           echo "Building songs..."
           if ! npm run build-songs; then
             echo "GITHUB WORKFLOW: Build songs failed — creating empty file as fallback."
-            echo "{}" > pages/songbook/songs.json
+            echo "[]" > pages/songbook/songs.json
           fi
       
       - name: Use Node.js

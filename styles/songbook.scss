@@ -2,6 +2,14 @@
   text-align: center;
 }
 
+.song[hidden], .links[hidden], .search[hidden] {
+  display: none;
+}
+
+.song {
+  white-space: pre-line;
+}
+
 .wrap {
   display: block;
 }
@@ -12,6 +20,7 @@
 
 .num {
   vertical-align: top;
+  margin-right: 0.75em;
 }
 
 .chorus {
@@ -19,10 +28,11 @@
 }
 
 .name {
+  display: block;
   font-size: 24;
 }
 .melody {
-  padding-left: 1em;
+  display: block;
   font-size: 18;
   font-style: italic;
 }
