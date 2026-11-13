@@ -49,7 +49,103 @@ function escape_html(text: string): string {
         .replaceAll('"', "&quot;");
 }
 
+function normalize_typst(text: string): string {
+    let result = "";
+    let position = 0;
+
+    function find_end(open: string, close: string, start: number): number {
+        let depth = 0;
+        for (let index = start; index < text.length; index++) {
+            if (text[index] === open)
+                depth++;
+            else if (text[index] === close) {
+                depth--;
+                if (depth === 0)
+                    return index;
+            }
+        }
+        return -1;
+    }
+
+    while (position < text.length) {
+        if (text[position] !== "#") {
+            result += text[position++];
+            continue;
+        }
+
+        const command = text.slice(position).match(/^#([A-Za-zÆæØøÅå][\wÆæØøÅå]*)/);
+        if (command == null) {
+            result += text[position++];
+            continue;
+        }
+
+        position += command[0].length;
+        const name = command[1];
+        while (/\s/.test(text[position] ?? ""))
+            position++;
+
+        if (name === "LaTeX") {
+            result += "\\LaTeX";
+            continue;
+        }
+        if (name === "set") {
+            const line_end = text.indexOf("\n", position);
+            position = line_end === -1 ? text.length : line_end;
+            continue;
+        }
+
+        if (text[position] === "(") {
+            const end = find_end("(", ")", position);
+            if (end !== -1) {
+                position = end + 1;
+                if (name === "text") {
+                    while (/\s/.test(text[position] ?? ""))
+                        position++;
+                    if (text[position] === "[") {
+                        const body_end = find_end("[", "]", position);
+                        if (body_end !== -1)
+                            position = body_end + 1;
+                    }
+                }
+            }
+            continue;
+        }
+
+        if (text[position] !== "[")
+            continue;
+
+        const end = find_end("[", "]", position);
+        if (end === -1) {
+            result += `#${name}`;
+            continue;
+        }
+
+        const body = normalize_typst(text.slice(position + 1, end));
+        position = end + 1;
+        if (["text", "super", "h"].includes(name))
+            continue;
+
+        const wrappers: {[key: string]: string} = {
+            bf: "bf", strong: "bf", em: "em", emph: "em", sl: "em",
+            tt: "tt", underline: "underline",
+        };
+        if (wrappers[name] != null)
+            result += `\\${wrappers[name]}{${body}}`;
+        else
+            result += body;
+    }
+
+    return result
+        .replace(/\/\/[^\n]*/g, "")
+        .replace(/\\\s*\n/g, "\n")
+        .replace(/(?<!\\)~/g, " ");
+}
+
 function tex_to_html(text: string): string {
+    text = normalize_typst(text);
+    text = text
+        .replaceAll("\\-", "—")
+        .replaceAll("\\~", "~");
     text = text
         .replace(/\/\{[^{}]*\}\//g, "")
         .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -176,7 +272,8 @@ function translate_math(math: string): string {
         "arrow.t": "\\uparrow", "arrow.b": "\\downarrow", "<=": "\\leq",
         ">=": "\\geq", "!=": "\\neq", in: "\\in", subset: "\\subset",
         union: "\\cup", sect: "\\cap", times: "\\times", dot: "\\cdot",
-        "...": "\\ldots", nabla: "\\nabla",
+        "...": "\\ldots", nabla: "\\nabla", "subset.eq": "\\subseteq",
+        "arrow": "\\to",
     };
     let translated = math;
     for (const key of Object.keys(symbols)) {
@@ -187,7 +284,18 @@ function translate_math(math: string): string {
             ? translated.replaceAll(key, symbols[key])
             : translated.replace(pattern, symbols[key]);
     }
-    const known = ["alpha", "beta", "gamma", "delta", "epsilon", "lambda", "pi", "sum", "log"];
+    const known = [
+        "alpha", "beta", "gamma", "delta", "epsilon", "varepsilon", "zeta",
+        "eta", "theta", "iota", "kappa", "lambda", "mu", "nu", "xi", "pi",
+        "rho", "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega",
+        "partial", "infty", "int", "sum", "prod", "lim", "sup", "inf", "max",
+        "min", "sqrt", "cdot", "pm", "mp", "oplus", "otimes", "leq", "geq",
+        "neq", "approx", "equiv", "subseteq", "supseteq", "notin", "forall",
+        "exists", "neg", "land", "lor", "rightarrow", "leftarrow", "uparrow",
+        "downarrow", "leftrightarrow", "emptyset", "sin", "cos", "tan", "log",
+        "ln", "exp", "det", "dim", "ker", "arg", "left", "right", "ldots",
+        "cdots", "vdots", "ddots",
+    ];
     for (const symbol of known)
         translated = translated.replace(new RegExp(`(?<!\\\\)\\b${symbol}\\b`, "g"), `\\\\${symbol}`);
     return translated;
