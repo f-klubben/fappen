@@ -17,8 +17,6 @@ import {
 } from "../util/common";
 import {AppDatabase} from "../database";
 import {bind_sso_buttons} from "../ffo-button";
-
-// @ts-ignore - the analyzer does not know how to deal with `bundle-text` imports
 import sso_buttons from 'bundle-text:../../components/ffo-button.pug';
 
 export interface UserProfile {

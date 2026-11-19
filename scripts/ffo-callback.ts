@@ -30,10 +30,6 @@ async function exchange_code(code: string, verifier: string): Promise<string> {
     return token.id_token;
 }
 
-/**
- * Reads the claims out of an ID token. The token comes straight from the token
- * endpoint over the connection we opened, so there is nothing to verify here.
- */
 function member_username(id_token: string): string {
     const base64 = id_token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
     const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
@@ -43,10 +39,6 @@ function member_username(id_token: string): string {
     return claims.username;
 }
 
-/**
- * Completes an OIDC login once the IdP has redirected the browser back to us,
- * by storing the member's profile the way the rest of the app expects.
- */
 async function handle_callback(): Promise<void> {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
@@ -60,7 +52,6 @@ async function handle_callback(): Promise<void> {
     const verifier = sessionStorage.getItem("oidc_verifier");
     const return_to = sessionStorage.getItem("oidc_return") ?? "/";
 
-    // Cleanup early to avoid replay issues
     sessionStorage.removeItem("oidc_state");
     sessionStorage.removeItem("oidc_verifier");
     sessionStorage.removeItem("oidc_return");
@@ -80,9 +71,7 @@ async function handle_callback(): Promise<void> {
         console.warn("OIDC login failed", err);
     }
 
-    // Drop the authorization response from the URL and return the user.
     window.location.replace(return_to);
 }
 
-// Safe to call on every page load
 void handle_callback();
