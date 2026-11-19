@@ -26,6 +26,11 @@ let config =  {
     events_api_key: process.env.FA_EVENTS_API_KEY || "AIzaSyBNlYH01_9Hc5S1J9vuFmu2nUqBZJNAXxs",
     events_base_url: process.env.FA_EVENTS_BASE_URL || "https://calendar.google.com/calendar/u/0/r?cid=",
     default_room: parseInt(process.env.FA_DEFAULT_ROOM) || 1,
+    oidc: {
+        issuer: process.env.FA_OIDC_ISSUER || "http://127.0.0.1:8000",
+        client_id: process.env.FA_OIDC_CLIENT_ID || "fappen",
+        scope: process.env.FA_OIDC_SCOPE || "openid profile",
+    },
     features: read_feature_list(),
 };
 

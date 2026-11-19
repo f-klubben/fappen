@@ -54,6 +54,12 @@
 }
 
 .fclub-sso-button.volunteer:hover {
+    background-color: var(--flå);
+    color: var(--f);
+}
+
+.fclub-sso-button.volunteer:hover .fclub-sso-logo {
+    filter: invert(1);
 }
 
 .fclub-sso-logo {

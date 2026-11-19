@@ -13,9 +13,13 @@ import {
     disable_loading_indicator,
     enable_loading_indicator,
     pointer_events,
-    reduce_sum, text, void_promise,
+    reduce_sum, text,
 } from "../util/common";
 import {AppDatabase} from "../database";
+import {bind_sso_buttons} from "../ffo-button";
+
+// @ts-ignore - the analyzer does not know how to deal with `bundle-text` imports
+import sso_buttons from 'bundle-text:../../components/ffo-button.pug';
 
 export interface UserProfile {
     username: string,
@@ -665,40 +669,9 @@ class FaStregsystem extends HTMLElement {
     }
 
     render_profile_prompt() {
-        const prompt_msg = 'In order to use stregsystemet you must first select the account that you will be using.';
         this.classList.add('profile-prompt');
-        this.innerText = prompt_msg;
-
-        const name_input = document.createElement('input');
-        name_input.placeholder = 'Username';
-
-        const submit_button = document.createElement('button');
-        submit_button.innerText = 'Submit';
-
-        submit_button.addEventListener('click', void_promise(async () => {
-            if (name_input.value.length === 0)
-                return;
-
-            this.style.display = 'none';
-            enable_loading_indicator();
-
-            const name = name_input.value;
-            try {
-                const profile = await fetch_profile(name);
-                await AppDatabase.instance.settings.put(profile, AppDatabase.active_profile_key);
-                events.profile_loaded.dispatch(profile);
-                this.classList.remove('profile-prompt');
-                await this.render_catalogue(profile);
-            } catch (_) {
-                this.childNodes[0].nodeValue = `${prompt_msg} Unable to find user by name "${name}".`;
-                disable_loading_indicator();
-            }
-
-            this.style.display = '';
-
-        }));
-
-        this.append(name_input, submit_button);
+        this.innerHTML = `Log in with your F-klub account to use stregsystemet.${sso_buttons}`;
+        bind_sso_buttons(this);
         disable_loading_indicator();
     }
 

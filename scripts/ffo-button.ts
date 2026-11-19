@@ -1,45 +1,57 @@
-const clientId: string = "fappen";
+import config from "../config";
 
-export async function loginWithOIDC(scopes: string[]): Promise<void> {
-    const redirectUri: string = "http://localhost:1234/";
-    const issuerAuthEndpoint: string = "http://127.0.0.1:8000/o/authorize";
+const {oidc} = config;
 
-    // CSRF protection
-    const state: string = crypto.randomUUID();
+/**
+ * The IdP redirects back to the app root, see `ffo-callback`.
+ * Must match a registered redirect URI on the `fappen` OAuth application.
+ */
+export const redirect_uri = `${window.location.origin}/`;
 
-    // PKCE
-    const verifier: string = crypto.randomUUID() + crypto.randomUUID();
-    const encoder: TextEncoder = new TextEncoder();
-    const data: Uint8Array = encoder.encode(verifier);
-
-    const hash: ArrayBuffer = await crypto.subtle.digest("SHA-256", data);
-    const challenge: string = btoa(
-        String.fromCharCode(...new Uint8Array(hash))
-    )
+const base64url = (buffer: ArrayBuffer): string =>
+    btoa(String.fromCharCode(...new Uint8Array(buffer)))
         .replace(/\+/g, "-")
         .replace(/\//g, "_")
         .replace(/=+$/, "");
 
-    sessionStorage.setItem("oidc_state", state);
-    sessionStorage.setItem("pkce_verifier", verifier);
+/**
+ * Starts the OpenID Connect authorization-code flow (with PKCE),
+ * sending the browser to the stregsystem IdP.
+ */
+export async function login_with_sso(): Promise<void> {
+    // CSRF protection
+    const state = crypto.randomUUID();
 
-    const params: URLSearchParams = new URLSearchParams({
-        client_id: clientId,
-        redirect_uri: redirectUri,
+    // PKCE
+    const verifier = crypto.randomUUID() + crypto.randomUUID();
+    const challenge = base64url(
+        await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)),
+    );
+
+    // Remember what the callback needs, and where to return the user.
+    sessionStorage.setItem("oidc_state", state);
+    sessionStorage.setItem("oidc_verifier", verifier);
+    sessionStorage.setItem("oidc_return", window.location.pathname);
+
+    const params = new URLSearchParams({
+        client_id: oidc.client_id,
+        redirect_uri,
         response_type: "code",
-        scope: scopes.join(" "),
+        scope: oidc.scope,
         state,
         code_challenge: challenge,
         code_challenge_method: "S256",
     });
 
-    window.location.href = `${issuerAuthEndpoint}?${params.toString()}`;
+    window.location.href = `${oidc.issuer}/o/authorize/?${params.toString()}`;
 }
 
-document.querySelectorAll<HTMLButtonElement>(".fclub-sso-button")
-    .forEach(button => {
-        button.addEventListener("click", () => {
-            const scopes = button.dataset.scopes?.split(" ") ?? [];
-            loginWithOIDC(scopes);
-        });
-    });
+/**
+ * Wires every `.fclub-sso-button` below `root` to start the SSO flow.
+ */
+export function bind_sso_buttons(root: ParentNode = document): void {
+    root.querySelectorAll<HTMLButtonElement>(".fclub-sso-button")
+        .forEach(button => button.addEventListener("click", () => {
+            void login_with_sso();
+        }));
+}

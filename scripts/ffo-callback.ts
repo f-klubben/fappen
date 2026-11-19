@@ -1,77 +1,88 @@
-const clientId: string = "fappen";
-const tokenAuthEndpoint: string = "http://127.0.0.1:8000/o/token/";
+import config from "../config";
+import {AppDatabase} from "./database";
+import {fetch_profile} from "./stregsystem";
+import {redirect_uri} from "./ffo-button";
+
+const {oidc} = config;
 
 interface TokenResponse {
-    access_token: string;
-    token_type: string;
-    expires_in?: number;
-    refresh_token?: string;
-    scope?: string;
+    id_token: string;
     [key: string]: unknown;
 }
 
-async function handleCallback(): Promise<void> {
+async function exchange_code(code: string, verifier: string): Promise<string> {
+    const response = await fetch(`${oidc.issuer}/o/token/`, {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: new URLSearchParams({
+            client_id: oidc.client_id,
+            grant_type: "authorization_code",
+            code,
+            code_verifier: verifier,
+            redirect_uri,
+        }),
+    });
+
+    if (!response.ok)
+        throw new Error(`Token request failed: ${response.status}`);
+
+    const token: TokenResponse = await response.json();
+    return token.id_token;
+}
+
+/**
+ * Reads the claims out of an ID token. The token comes straight from the token
+ * endpoint over the connection we opened, so there is nothing to verify here.
+ */
+function member_username(id_token: string): string {
+    const base64 = id_token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    const claims = JSON.parse(new TextDecoder().decode(
+        Uint8Array.from(atob(padded), c => c.charCodeAt(0)),
+    ));
+    return claims.username;
+}
+
+/**
+ * Completes an OIDC login once the IdP has redirected the browser back to us,
+ * by storing the member's profile the way the rest of the app expects.
+ */
+async function handle_callback(): Promise<void> {
     const params = new URLSearchParams(window.location.search);
-    const code: string | null = params.get("code");
-    const returnedState: string | null = params.get("state");
+    const code = params.get("code");
+    const state = params.get("state");
 
-    // No OIDC callback → do nothing, silently
-    if (!code || !returnedState) {
+    // Not an OIDC callback → nothing to do.
+    if (code == null || state == null)
         return;
-    }
 
-    const expectedState: string | null =
-        sessionStorage.getItem("oidc_state");
-    const verifier: string | null =
-        sessionStorage.getItem("pkce_verifier");
+    const expected_state = sessionStorage.getItem("oidc_state");
+    const verifier = sessionStorage.getItem("oidc_verifier");
+    const return_to = sessionStorage.getItem("oidc_return") ?? "/";
 
     // Cleanup early to avoid replay issues
     sessionStorage.removeItem("oidc_state");
-    sessionStorage.removeItem("pkce_verifier");
+    sessionStorage.removeItem("oidc_verifier");
+    sessionStorage.removeItem("oidc_return");
 
     // Hard failure, but still non-intrusive
-    if (!expectedState || returnedState !== expectedState || !verifier) {
+    if (state !== expected_state || verifier == null) {
         console.warn("OIDC callback validation failed");
         return;
     }
 
-    let response: Response;
     try {
-        response = await fetch(tokenAuthEndpoint, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: new URLSearchParams({
-                client_id: clientId,
-                grant_type: "authorization_code",
-                code,
-                code_verifier: verifier,
-                redirect_uri: window.location.origin + window.location.pathname,
-            }),
-        });
+        const id_token = await exchange_code(code, verifier);
+        const profile = await fetch_profile(member_username(id_token));
+        await AppDatabase.instance.settings
+            .put(profile, AppDatabase.active_profile_key);
     } catch (err) {
-        console.warn("Token request failed", err);
-        return;
+        console.warn("OIDC login failed", err);
     }
 
-    if (!response.ok) {
-        console.warn("Token endpoint returned error", response.status);
-        return;
-    }
-
-    const tokenResponse: TokenResponse = await response.json();
-
-    // At this point auth succeeded — you decide what “login” means
-    console.log("OIDC token response:", tokenResponse);
-
-    // Optional: clean URL (no reload)
-    window.history.replaceState(
-        {},
-        document.title,
-        window.location.pathname
-    );
+    // Drop the authorization response from the URL and return the user.
+    window.location.replace(return_to);
 }
 
 // Safe to call on every page load
-handleCallback();
+void handle_callback();
