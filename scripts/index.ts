@@ -97,6 +97,16 @@ void (() => {
             node.addEventListener('click',toggle_darkmode);
         })
 
+    stregsystem.events.profile_loaded.register_handle(() => {
+        document.querySelectorAll('.logout-button')
+            .forEach(node => node.removeAttribute('hidden'));
+    });
+
+    document.querySelectorAll('.logout-button')
+        ?.forEach(node => {
+            node.addEventListener('click', () => void stregsystem.logout());
+        });
+
     /*
         Connectivity checks
      */

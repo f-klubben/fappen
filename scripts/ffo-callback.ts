@@ -44,8 +44,7 @@ async function handle_callback(): Promise<void> {
     const code = params.get("code");
     const state = params.get("state");
 
-    // Not an OIDC callback → nothing to do.
-    if (code == null || state == null)
+    if (code == null && state == null && !params.has("error"))
         return;
 
     const expected_state = sessionStorage.getItem("oidc_state");
@@ -56,9 +55,9 @@ async function handle_callback(): Promise<void> {
     sessionStorage.removeItem("oidc_verifier");
     sessionStorage.removeItem("oidc_return");
 
-    // Hard failure, but still non-intrusive
-    if (state !== expected_state || verifier == null) {
+    if (code == null || state !== expected_state || verifier == null) {
         console.warn("OIDC callback validation failed");
+        window.location.replace(return_to);
         return;
     }
 

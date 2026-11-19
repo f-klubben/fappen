@@ -15,7 +15,7 @@ mixin head(page_title)
 mixin scripts
     script().
         document.disable_worker = #{disable_worker}
-    script(type="module" src="/scripts/index.ts" defer async)
+    script(type="module" src="/scripts/index.ts")
     block
 
 mixin vspace(length)

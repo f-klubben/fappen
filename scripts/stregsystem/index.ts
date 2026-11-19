@@ -13,7 +13,7 @@ import {
     disable_loading_indicator,
     enable_loading_indicator,
     pointer_events,
-    reduce_sum, text,
+    reduce_sum, text, void_promise,
 } from "../util/common";
 import {AppDatabase} from "../database";
 import {bind_sso_buttons} from "../ffo-button";
@@ -146,6 +146,11 @@ export const fetch_profile = async (username: string): Promise<UserProfile> => {
         username, id: user_id,
         name, active, balance,
     };
+};
+
+export const logout = async (): Promise<void> => {
+    await AppDatabase.instance.settings.delete(AppDatabase.active_profile_key);
+    window.location.reload();
 };
 
 /*
@@ -548,7 +553,7 @@ class FaProfileWidget extends HTMLElement {
             this.balance,
         );
         pointer_events(this, {
-            hold: [800, this.logout.bind(this)],
+            hold: [800, () => void logout()],
         });
 
         window.addEventListener('focus', () => {
@@ -565,11 +570,6 @@ class FaProfileWidget extends HTMLElement {
         this.balance.textContent = format_stregdollar(profile.balance);
 
         setTimeout(() => this.balance_update_job(), 10000);
-    }
-
-    async logout() {
-        await AppDatabase.instance.settings.delete("profile.active");
-        window.location.reload()
     }
 
     on_balance_change(change: BalanceChange) {
@@ -667,9 +667,50 @@ class FaStregsystem extends HTMLElement {
     }
 
     render_profile_prompt() {
+        const prompt_msg = 'Log in with your F-klub account to use stregsystemet.';
         this.classList.add('profile-prompt');
-        this.innerHTML = `Log in with your F-klub account to use stregsystemet.${sso_buttons}`;
+        this.innerHTML = `${prompt_msg}${sso_buttons}`;
         bind_sso_buttons(this);
+
+        const name_input = document.createElement('input');
+        name_input.placeholder = 'Username';
+        name_input.hidden = true;
+
+        const submit_button = document.createElement('button');
+        submit_button.innerText = 'Submit';
+        submit_button.hidden = true;
+
+        this.append(name_input, submit_button);
+
+        pointer_events(this, {
+            hold: [1000, () => {
+                name_input.hidden = false;
+                submit_button.hidden = false;
+            }],
+        });
+
+        submit_button.addEventListener('click', void_promise(async () => {
+            if (name_input.value.length === 0)
+                return;
+
+            this.style.display = 'none';
+            enable_loading_indicator();
+
+            const name = name_input.value;
+            try {
+                const profile = await fetch_profile(name);
+                await AppDatabase.instance.settings.put(profile, AppDatabase.active_profile_key);
+                events.profile_loaded.dispatch(profile);
+                this.classList.remove('profile-prompt');
+                await this.render_catalogue(profile);
+            } catch (_) {
+                this.childNodes[0].nodeValue = `${prompt_msg} Unable to find user by name "${name}".`;
+                disable_loading_indicator();
+            }
+
+            this.style.display = '';
+        }));
+
         disable_loading_indicator();
     }
 
