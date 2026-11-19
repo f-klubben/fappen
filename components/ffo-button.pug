@@ -1,0 +1,11 @@
+mixin ffo()
+    link(rel="stylesheet" href="../styles/ffo-button.css")
+    script(type="module", src="../scripts/ffo-button.ts")
+    div.fclub-sso-stack
+        button.fclub-sso-button.member(data-scopes='member:balance')
+            img.fclub-sso-logo(src="https://raw.githubusercontent.com/f-klubben/logo/refs/heads/master/logo.svg")
+            span Continue as Fember
+
+        button.fclub-sso-button.volunteer(data-scopes='staff member:balance')
+            img.fclub-sso-logo(src="https://raw.githubusercontent.com/f-klubben/logo/refs/heads/master/logo.svg")
+            span Continue as F-rivillig
