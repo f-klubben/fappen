@@ -672,21 +672,31 @@ class FaStregsystem extends HTMLElement {
         this.innerHTML = `${prompt_msg}${sso_buttons}`;
         bind_sso_buttons(this);
 
+        const legacy_note = document.createElement('p');
+        legacy_note.innerText = 'Only works on the AAU network/VPN.';
+
         const name_input = document.createElement('input');
         name_input.placeholder = 'Username';
-        name_input.hidden = true;
 
         const submit_button = document.createElement('button');
         submit_button.innerText = 'Submit';
-        submit_button.hidden = true;
 
-        this.append(name_input, submit_button);
+        const legacy_toggle = document.createElement('button');
+        legacy_toggle.className = 'legacy-login';
+        legacy_toggle.innerText = 'Legacy login';
 
-        pointer_events(this, {
-            hold: [1000, () => {
-                name_input.hidden = false;
-                submit_button.hidden = false;
-            }],
+        const legacy_controls = [legacy_note, name_input, submit_button];
+        legacy_controls.forEach(control => {
+            control.hidden = true;
+        });
+
+        this.append(legacy_toggle, legacy_note, name_input, submit_button);
+
+        legacy_toggle.addEventListener('click', () => {
+            legacy_toggle.hidden = true;
+            legacy_controls.forEach(control => {
+                control.hidden = false;
+            });
         });
 
         submit_button.addEventListener('click', void_promise(async () => {
