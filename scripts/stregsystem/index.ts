@@ -15,8 +15,8 @@ import {
     pointer_events,
     reduce_sum, text, void_promise,
 } from "../util/common";
-import {AppDatabase} from "../database";
-import {bind_sso_buttons} from "../ffo-button";
+import {AppDatabase, StoredToken} from "../database";
+import {bind_sso_buttons, revoke_token} from "../ffo-button";
 import sso_buttons from 'bundle-text:../../components/ffo-button.pug';
 
 export interface UserProfile {
@@ -149,8 +149,18 @@ export const fetch_profile = async (username: string): Promise<UserProfile> => {
 };
 
 export const logout = async (): Promise<void> => {
+    const token: StoredToken = await AppDatabase.instance.settings
+        .get(AppDatabase.access_token_key);
+
     await AppDatabase.instance.settings.delete(AppDatabase.active_profile_key);
     await AppDatabase.instance.settings.delete(AppDatabase.access_token_key);
+
+    const tokens = [token?.value, token?.refresh_token]
+        .filter((value): value is string => value != null);
+
+    await Promise.all(tokens.map(value => revoke_token(value)))
+        .catch(err => console.warn("Token revocation failed", err));
+
     window.location.reload();
 };
 

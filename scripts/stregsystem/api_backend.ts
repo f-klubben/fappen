@@ -1,25 +1,16 @@
 import {promise_cond} from "../util/async";
 import config from "../../config";
-import {AppDatabase, StoredToken} from "../database";
+import {get_access_token} from "../ffo-button";
 import {SaleResponse, ActiveProductList} from "./index";
 
 const {base_api_url} = config;
 
-const auth_header = async (): Promise<Record<string, string>> => {
-    const token: StoredToken = await AppDatabase.instance.settings
-        .get(AppDatabase.access_token_key);
-
-    if (token == null || token.expires_at <= Date.now())
-        return {};
-
-    return {Authorization: `Bearer ${token.value}`};
-};
-
 export const api_fetch = async (url: string, init: RequestInit = {}): Promise<Response> => {
     const headers = new Headers(init.headers);
+    const token = await get_access_token();
 
-    for (const [key, value] of Object.entries(await auth_header()))
-        headers.set(key, value);
+    if (token != null)
+        headers.set("Authorization", `Bearer ${token}`);
 
     return fetch(url, {...init, headers});
 };

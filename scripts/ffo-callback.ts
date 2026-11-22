@@ -9,6 +9,7 @@ interface TokenResponse {
     id_token: string;
     access_token: string;
     expires_in: number;
+    refresh_token?: string;
     [key: string]: unknown;
 }
 
@@ -67,7 +68,11 @@ async function handle_callback(): Promise<void> {
         const token = await exchange_code(code, verifier);
         const profile = await fetch_profile(member_username(token.id_token));
         await AppDatabase.instance.settings.put(
-            {value: token.access_token, expires_at: Date.now() + token.expires_in * 1000},
+            {
+                value: token.access_token,
+                expires_at: Date.now() + token.expires_in * 1000,
+                refresh_token: token.refresh_token,
+            },
             AppDatabase.access_token_key,
         );
         await AppDatabase.instance.settings

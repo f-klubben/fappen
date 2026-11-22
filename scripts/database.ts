@@ -3,6 +3,7 @@ import Dexie from "dexie";
 export interface StoredToken {
     value: string;
     expires_at: number;
+    refresh_token?: string;
 }
 
 export class AppDatabase extends Dexie {
