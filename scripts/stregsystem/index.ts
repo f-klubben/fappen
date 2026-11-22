@@ -124,7 +124,7 @@ export enum AccessStatus {
 export const check_access = (): Promise<AccessStatus> =>
     fetch(`${base_api_url}/../${default_room}`)
         .if(res => res.status === 200, AccessStatus.StregsystemAvailable)
-        .then_if_async(state => fetch(`${base_api_url}/products/active_products?room_id=${default_room}`)
+        .then_if_async(state => api_backend.api_fetch(`${base_api_url}/products/active_products?room_id=${default_room}`)
             .if(res => res.status === 200, AccessStatus.ApiAvailable)
             .else_use(state))
         .else_promise(AccessStatus.StregsystemUnavailable)
@@ -150,6 +150,7 @@ export const fetch_profile = async (username: string): Promise<UserProfile> => {
 
 export const logout = async (): Promise<void> => {
     await AppDatabase.instance.settings.delete(AppDatabase.active_profile_key);
+    await AppDatabase.instance.settings.delete(AppDatabase.access_token_key);
     window.location.reload();
 };
 

@@ -1,7 +1,13 @@
 import Dexie from "dexie";
 
+export interface StoredToken {
+    value: string;
+    expires_at: number;
+}
+
 export class AppDatabase extends Dexie {
     static active_profile_key = "profile.active";
+    static access_token_key = "profile.access_token";
     static balance_update_time_key = "job.balance_update"
 
     static instance: AppDatabase = new AppDatabase();

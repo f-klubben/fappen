@@ -29,7 +29,7 @@ let config =  {
     oidc: {
         issuer: process.env.FA_OIDC_ISSUER || "http://127.0.0.1:8000",
         client_id: process.env.FA_OIDC_CLIENT_ID || "fappen",
-        scope: process.env.FA_OIDC_SCOPE || "openid profile",
+        scope: process.env.FA_OIDC_SCOPE || "openid profile member:id member:balance member:active member:name",
     },
     features: read_feature_list(),
 };

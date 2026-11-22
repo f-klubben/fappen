@@ -3,6 +3,7 @@ import * as stregsystem from "./stregsystem";
 import * as events from "./events";
 import {AccessStatus} from "./stregsystem";
 import * as py_inter from "./util/python_interop";
+import "./ffo-callback";
 
 declare global {
     interface Document {

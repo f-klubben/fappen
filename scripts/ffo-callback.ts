@@ -7,10 +7,12 @@ const {oidc} = config;
 
 interface TokenResponse {
     id_token: string;
+    access_token: string;
+    expires_in: number;
     [key: string]: unknown;
 }
 
-async function exchange_code(code: string, verifier: string): Promise<string> {
+async function exchange_code(code: string, verifier: string): Promise<TokenResponse> {
     const response = await fetch(`${oidc.issuer}/o/token/`, {
         method: "POST",
         headers: {"Content-Type": "application/x-www-form-urlencoded"},
@@ -27,7 +29,7 @@ async function exchange_code(code: string, verifier: string): Promise<string> {
         throw new Error(`Token request failed: ${response.status}`);
 
     const token: TokenResponse = await response.json();
-    return token.id_token;
+    return token;
 }
 
 function member_username(id_token: string): string {
@@ -62,8 +64,12 @@ async function handle_callback(): Promise<void> {
     }
 
     try {
-        const id_token = await exchange_code(code, verifier);
-        const profile = await fetch_profile(member_username(id_token));
+        const token = await exchange_code(code, verifier);
+        const profile = await fetch_profile(member_username(token.id_token));
+        await AppDatabase.instance.settings.put(
+            {value: token.access_token, expires_at: Date.now() + token.expires_in * 1000},
+            AppDatabase.access_token_key,
+        );
         await AppDatabase.instance.settings
             .put(profile, AppDatabase.active_profile_key);
     } catch (err) {
