@@ -3,6 +3,7 @@ import * as stregsystem from "./stregsystem";
 import * as events from "./events";
 import {AccessStatus} from "./stregsystem";
 import * as py_inter from "./util/python_interop";
+import "./ffo-callback";
 
 declare global {
     interface Document {
@@ -96,6 +97,16 @@ void (() => {
         ?.forEach(node=>{
             node.addEventListener('click',toggle_darkmode);
         })
+
+    stregsystem.events.profile_loaded.register_handle(() => {
+        document.querySelectorAll('.logout-button')
+            .forEach(node => node.removeAttribute('hidden'));
+    });
+
+    document.querySelectorAll('.logout-button')
+        ?.forEach(node => {
+            node.addEventListener('click', () => void stregsystem.logout());
+        });
 
     /*
         Connectivity checks

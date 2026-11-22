@@ -15,7 +15,9 @@ import {
     pointer_events,
     reduce_sum, text, void_promise,
 } from "../util/common";
-import {AppDatabase} from "../database";
+import {AppDatabase, StoredToken} from "../database";
+import {bind_sso_buttons, revoke_token} from "../ffo-button";
+import sso_buttons from 'bundle-text:../../components/ffo-button.pug';
 
 export interface UserProfile {
     username: string,
@@ -122,7 +124,7 @@ export enum AccessStatus {
 export const check_access = (): Promise<AccessStatus> =>
     fetch(`${base_api_url}/../${default_room}`)
         .if(res => res.status === 200, AccessStatus.StregsystemAvailable)
-        .then_if_async(state => fetch(`${base_api_url}/products/active_products?room_id=${default_room}`)
+        .then_if_async(state => api_backend.api_fetch(`${base_api_url}/products/active_products?room_id=${default_room}`)
             .if(res => res.status === 200, AccessStatus.ApiAvailable)
             .else_use(state))
         .else_promise(AccessStatus.StregsystemUnavailable)
@@ -144,6 +146,22 @@ export const fetch_profile = async (username: string): Promise<UserProfile> => {
         username, id: user_id,
         name, active, balance,
     };
+};
+
+export const logout = async (): Promise<void> => {
+    const token: StoredToken = await AppDatabase.instance.settings
+        .get(AppDatabase.access_token_key);
+
+    await AppDatabase.instance.settings.delete(AppDatabase.active_profile_key);
+    await AppDatabase.instance.settings.delete(AppDatabase.access_token_key);
+
+    const tokens = [token?.value, token?.refresh_token]
+        .filter((value): value is string => value != null);
+
+    await Promise.all(tokens.map(value => revoke_token(value)))
+        .catch(err => console.warn("Token revocation failed", err));
+
+    window.location.reload();
 };
 
 /*
@@ -546,7 +564,7 @@ class FaProfileWidget extends HTMLElement {
             this.balance,
         );
         pointer_events(this, {
-            hold: [800, this.logout.bind(this)],
+            hold: [800, () => void logout()],
         });
 
         window.addEventListener('focus', () => {
@@ -563,11 +581,6 @@ class FaProfileWidget extends HTMLElement {
         this.balance.textContent = format_stregdollar(profile.balance);
 
         setTimeout(() => this.balance_update_job(), 10000);
-    }
-
-    async logout() {
-        await AppDatabase.instance.settings.delete("profile.active");
-        window.location.reload()
     }
 
     on_balance_change(change: BalanceChange) {
@@ -665,15 +678,37 @@ class FaStregsystem extends HTMLElement {
     }
 
     render_profile_prompt() {
-        const prompt_msg = 'In order to use stregsystemet you must first select the account that you will be using.';
+        const prompt_msg = 'Log in with your F-klub account to use stregsystemet.';
         this.classList.add('profile-prompt');
-        this.innerText = prompt_msg;
+        this.innerHTML = `${prompt_msg}${sso_buttons}`;
+        bind_sso_buttons(this);
+
+        const legacy_note = document.createElement('p');
+        legacy_note.innerText = 'Only works on the AAU network/VPN.';
 
         const name_input = document.createElement('input');
         name_input.placeholder = 'Username';
 
         const submit_button = document.createElement('button');
         submit_button.innerText = 'Submit';
+
+        const legacy_toggle = document.createElement('button');
+        legacy_toggle.className = 'legacy-login';
+        legacy_toggle.innerText = 'Legacy login';
+
+        const legacy_controls = [legacy_note, name_input, submit_button];
+        legacy_controls.forEach(control => {
+            control.hidden = true;
+        });
+
+        this.append(legacy_toggle, legacy_note, name_input, submit_button);
+
+        legacy_toggle.addEventListener('click', () => {
+            legacy_toggle.hidden = true;
+            legacy_controls.forEach(control => {
+                control.hidden = false;
+            });
+        });
 
         submit_button.addEventListener('click', void_promise(async () => {
             if (name_input.value.length === 0)
@@ -695,10 +730,8 @@ class FaStregsystem extends HTMLElement {
             }
 
             this.style.display = '';
-
         }));
 
-        this.append(name_input, submit_button);
         disable_loading_indicator();
     }
 
