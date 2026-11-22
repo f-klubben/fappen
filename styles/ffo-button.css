@@ -10,12 +10,6 @@
     --btn-color: var(--f);
 }
 
-.volunteer {
-    --btn-bg: var(--f);
-    --btn-border: var(--frå);
-    --btn-color: var(--flå);
-}
-
 .fclub-sso-stack {
     display: flex;
     flex-direction: column;
@@ -51,15 +45,6 @@
 
 .fclub-sso-button.member:hover .fclub-sso-logo {
     filter: invert(0);
-}
-
-.fclub-sso-button.volunteer:hover {
-    background-color: var(--flå);
-    color: var(--f);
-}
-
-.fclub-sso-button.volunteer:hover .fclub-sso-logo {
-    filter: invert(1);
 }
 
 .fclub-sso-logo {
