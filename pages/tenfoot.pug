@@ -1,0 +1,17 @@
+extends ../components/base_layout
+
+block head
+    link(rel="stylesheet" href="/styles/frontpage.scss")
+
+block content
+    +vspace("25px")
+    img.big-logo(src="/media/flogo.svg" height="200")
+    +vspace("25px")
+    cast-media-player
+    section.service-links.border-outer
+            each key in Object.keys(navigation)
+                a(href=navigation[key])
+                    .border-inner
+                        h3= key
+    +scripts
+        script(type="module" src="/scripts/chromecast-receiver.js")
