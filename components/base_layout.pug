@@ -13,6 +13,7 @@ html(lang="en")
             a.nav-trigger(href="#")
                 img.access-status-indicator(src="/media/flogo.svg" height="50")
             fa-profile-widget
+            google-cast-launcher#castbutton
         aside#sidebar-nav
             ul.border-outer
                 each key in Object.keys(navigation)
@@ -24,8 +25,22 @@ html(lang="en")
             if show_load_indicator
                 #loading-indicator.spinner
                     img(width="200" src="/media/fstjerne.svg")
+            #media_control
+                #play
+                #pause
+                #progress_bg
+                #progress
+                #progress_indicator
+                #duration 00:00:00
+
+            #media_info
+                #media_title
+                #media_subtitle
+                #media_desc
             block content
             if hide_frit_fit !== true
                 p.frit-fit #fritfit (for real)
         +scripts
+            script(type="module" src="/scripts/chromecast-sender.js")
+            script(type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1")
             block scripts
