@@ -47,6 +47,45 @@ function toggle_sidebar() {
     else
         sidebar.classList.add('active');
 }
+
+function init_tenfoot_navigation() {
+    if (!document.documentElement.classList.contains('ten-foot')) return;
+
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('.service-menu .service-link'));
+    if (links.length === 0) return;
+
+    document.addEventListener('keydown', event => {
+        if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement) return;
+
+        const current_index = links.indexOf(document.activeElement as HTMLAnchorElement);
+        let next_index: number | undefined;
+
+        switch (event.key) {
+            case 'ArrowRight':
+            case 'ArrowDown':
+                next_index = current_index < 0 ? 0 : (current_index + 1) % links.length;
+                break;
+            case 'ArrowLeft':
+            case 'ArrowUp':
+                next_index = current_index < 0 ? links.length - 1 : (current_index - 1 + links.length) % links.length;
+                break;
+            case 'Home':
+                next_index = 0;
+                break;
+            case 'End':
+                next_index = links.length - 1;
+                break;
+        }
+
+        if (next_index === undefined) return;
+        event.preventDefault();
+        links[next_index].focus();
+        links[next_index].scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
+    });
+
+    links[0].focus();
+}
+
 function toggle_darkmode(){
         let theme = document.body.classList.toggle("dark-theme")?  "dark" : "light";
         localStorage.setItem("theme", theme);
@@ -83,6 +122,7 @@ void (() => {
         ?.forEach(node => {
             node.addEventListener('click', toggle_sidebar);
         });
+    init_tenfoot_navigation();
     /*
         Dark Mode stuff
     */

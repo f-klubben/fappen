@@ -1,0 +1,13 @@
+include ../../components/core
+
+doctype html
+html(lang="en")
+    body
+        script.
+            try {
+                const tenFoot = localStorage.getItem('tenFoot') === '1';
+                localStorage.setItem('tenFoot', tenFoot ? '0' : '1');
+            } catch (error) {
+                console.warn('Unable to change display mode.', error);
+            }
+            window.location.href = '/';

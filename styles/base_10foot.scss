@@ -1,0 +1,73 @@
+html.ten-foot {
+  $primary-gradient-start: #1a1a2e;
+  $primary-gradient-end: #16213e;
+  $text-color: #ffffff;
+  $focus-color: #00d4ff;
+
+  &,
+  body {
+    background: linear-gradient(135deg, $primary-gradient-start 0%, $primary-gradient-end 100%);
+    color: $text-color;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    overflow-x: hidden;
+  }
+
+  body {
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  main {
+    flex: 1;
+    padding: clamp(1rem, 4vw, 4rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    align-items: stretch;
+  }
+
+  .big-logo {
+    display: none;
+  }
+
+  .center {
+    text-align: center;
+  }
+
+  .flex-center {
+    align-content: center;
+    justify-content: center;
+  }
+
+  header {
+    display: none;
+  }
+
+  .spinner {
+    animation: rotation 5s infinite linear;
+  }
+
+  @keyframes rotation {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(359deg);
+    }
+  }
+
+  .border-outer {
+    border: inherit !important;
+  }
+
+  .border-inner {
+    margin: 0 !important;
+    border: 0 !important;
+  }
+
+  *:focus {
+    outline: 4px solid $focus-color;
+    outline-offset: 4px;
+  }
+}
